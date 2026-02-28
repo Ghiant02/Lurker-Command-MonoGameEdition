@@ -15,6 +15,9 @@ namespace LurkerCommand.Services {
                 Settings["Width"] = "1440";
                 Settings["Height"] = "1080";
                 Settings["FullScreen"] = "false";
+                Settings["WindowTitle"] = "Lurker Command";
+                Settings["AltF4"] = "true";
+                Settings["AllowResizing"] = "false";
                 Save();
             }
             else

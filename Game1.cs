@@ -4,7 +4,6 @@ using LurkerCommand.Scenes;
 using LurkerCommand.Services;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 
 namespace LurkerCommand
 {
@@ -17,33 +16,24 @@ namespace LurkerCommand
         {
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
-            Window.Title = "Lurker Command";
             IsMouseVisible = true;
-
-            ConfigManager.Initialize();
-
-            string widthStr = ConfigManager.Get("Width", "1440");
-            string heightStr = ConfigManager.Get("Height", "1080");
-            string fsStr = ConfigManager.Get("FullScreen", "false");
-
-            _graphics.PreferredBackBufferWidth = int.Parse(widthStr);
-            _graphics.PreferredBackBufferHeight = int.Parse(heightStr);
-
-            if (bool.TryParse(fsStr, out bool isFull))
-            {
-                _graphics.IsFullScreen = isFull;
-            }
-            else
-            {
-                _graphics.IsFullScreen = false;
-            }
-
-            _graphics.ApplyChanges();
         }
 
         protected override void Initialize()
         {
+            ConfigManager.Initialize();
             AssetManager.Init(Content);
+
+            _graphics.PreferredBackBufferWidth = int.Parse(ConfigManager.Get("Width", "1440"));
+            _graphics.PreferredBackBufferHeight = int.Parse(ConfigManager.Get("Height", "1080"));
+            _graphics.IsFullScreen = bool.Parse(ConfigManager.Get("FullScreen", "false"));
+            Window.AllowAltF4 = bool.Parse(ConfigManager.Get("AltF4", "true"));
+            Window.AllowUserResizing = bool.Parse(ConfigManager.Get("AllowResizing", "false"));
+            Window.Title = ConfigManager.Get("WindowTitle", "Lurker Command");
+
+            _graphics.HardwareModeSwitch = false;
+
+            _graphics.ApplyChanges();
 
             GameScene game = new GameScene(GraphicsDevice);
             SceneManager.SetScene(game);

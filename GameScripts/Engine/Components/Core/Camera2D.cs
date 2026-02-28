@@ -5,7 +5,7 @@ namespace GameEngine.Components.Core
 {
     public sealed class Camera2D
     {
-        private readonly GraphicsDevice _graphics;
+        public readonly GraphicsDevice graphics;
         private Vector2 _position;
         private float _zoom = 1f;
         private float _rotation = 0f;
@@ -32,7 +32,7 @@ namespace GameEngine.Components.Core
 
         public Camera2D(GraphicsDevice graphics)
         {
-            _graphics = graphics;
+            this.graphics = graphics;
         }
 
         public Matrix GetViewMatrix()
@@ -43,8 +43,8 @@ namespace GameEngine.Components.Core
                          Matrix.CreateRotationZ(_rotation) *
                          Matrix.CreateScale(_zoom, _zoom, 1) *
                          Matrix.CreateTranslation(new Vector3(
-                             _graphics.Viewport.Width * 0.5f,
-                             _graphics.Viewport.Height * 0.5f, 0));
+                             graphics.Viewport.Width * 0.5f,
+                             graphics.Viewport.Height * 0.5f, 0));
 
             _isDirty = false;
             return _transform;

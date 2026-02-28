@@ -13,22 +13,37 @@ namespace LurkerCommand
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
-        public Game1() {
+        public Game1()
+        {
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             Window.Title = "Lurker Command";
             IsMouseVisible = true;
+
+            ConfigManager.Initialize();
+
+            string widthStr = ConfigManager.Get("Width", "1440");
+            string heightStr = ConfigManager.Get("Height", "1080");
+            string fsStr = ConfigManager.Get("FullScreen", "false");
+
+            _graphics.PreferredBackBufferWidth = int.Parse(widthStr);
+            _graphics.PreferredBackBufferHeight = int.Parse(heightStr);
+
+            if (bool.TryParse(fsStr, out bool isFull))
+            {
+                _graphics.IsFullScreen = isFull;
+            }
+            else
+            {
+                _graphics.IsFullScreen = false;
+            }
+
+            _graphics.ApplyChanges();
         }
 
         protected override void Initialize()
         {
             AssetManager.Init(Content);
-            ConfigManager.Initialize();
-
-            _graphics.PreferredBackBufferWidth = int.Parse(ConfigManager.Get("Width"));
-            _graphics.PreferredBackBufferHeight = int.Parse(ConfigManager.Get("Height"));
-
-            _graphics.ApplyChanges();
 
             GameScene game = new GameScene(GraphicsDevice);
             SceneManager.SetScene(game);

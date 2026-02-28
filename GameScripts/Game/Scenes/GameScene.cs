@@ -2,6 +2,7 @@
 using GameEngine.Systems;
 using LurkerCommand.GameSystem;
 using LurkerCommand.MapSystem;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace LurkerCommand.Scenes
@@ -14,7 +15,7 @@ namespace LurkerCommand.Scenes
         public override void Load() {
             Camera2D cm = new Camera2D(device);
             SetCamera(cm);
-            CameraMovement cmMovement = new CameraMovement(cm);
+            CameraMovement cmMovement = new CameraMovement(cm, new Vector2(-400f, -400f));
             Add(cmMovement);
             Field.SetMap(this);
         }

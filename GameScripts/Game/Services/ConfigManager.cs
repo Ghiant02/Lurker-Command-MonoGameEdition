@@ -13,7 +13,8 @@ namespace LurkerCommand.Services {
             if (!File.Exists(ConfigPath))
             {
                 Settings["Width"] = "1440";
-                Settings["Height"] = "720";
+                Settings["Height"] = "1080";
+                Settings["FullScreen"] = "false";
                 Save();
             }
             else

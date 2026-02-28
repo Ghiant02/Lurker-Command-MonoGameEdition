@@ -27,9 +27,7 @@ namespace LurkerCommand
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
-
-
-
+            
             AssetManager.Init(Content);
         }
 

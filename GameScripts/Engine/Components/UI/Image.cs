@@ -18,8 +18,6 @@ namespace GameEngine.Components.UI
 
         public override void Draw(GameTime gameTime, SpriteBatch sb)
         {
-            if (!IsActive || Texture == null) return;
-
             sb.Draw(Texture, Transform.Position, null, Color,
                 Transform.Rotation, Vector2.Zero, Transform.Scale, SpriteEffects.None, 0f);
         }

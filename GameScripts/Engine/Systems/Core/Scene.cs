@@ -11,23 +11,26 @@ namespace GameEngine.Systems
         private readonly List<IUpdate> _updatables = new(1024);
         private readonly List<IDraw> _drawables = new(1024);
 
-        private readonly List<object> _toAdd = new(128);
-        private readonly List<object> _toRemove = new(128);
+        private readonly List<GameObject> _toAdd = new(128);
+        private readonly List<GameObject> _toRemove = new(128);
 
-        public Camera2D camera;
+        private Camera2D camera;
 
         private bool _needsSort;
 
-        public abstract void SetCamera();
+        public uint ID;
+        public void SetCamera(Camera2D camera) {
+            this.camera = camera;
+        }
         public abstract void Load();
 
-        public void Add(object obj)
+        public void Add(GameObject obj)
         {
             _toAdd.Add(obj);
             _needsSort = true;
         }
 
-        public void Remove(object obj) => _toRemove.Add(obj);
+        public void Remove(GameObject obj) => _toRemove.Add(obj);
 
         public void Update(GameTime gameTime)
         {
@@ -83,8 +86,17 @@ namespace GameEngine.Systems
                 for (int i = 0; i < _toRemove.Count; i++)
                 {
                     var obj = _toRemove[i];
-                    if (obj is IUpdate u) _updatables.Remove(u);
-                    if (obj is IDraw d) _drawables.Remove(d);
+
+                    if (obj is Entity ent)
+                    {
+                        _updatables.Remove(ent);
+                        _drawables.Remove(ent);
+                    }
+                    else
+                    {
+                        if (obj is IUpdate u) _updatables.Remove(u);
+                        if (obj is IDraw d) _drawables.Remove(d);
+                    }
                 }
                 _toRemove.Clear();
             }
@@ -94,8 +106,17 @@ namespace GameEngine.Systems
                 for (int i = 0; i < _toAdd.Count; i++)
                 {
                     var obj = _toAdd[i];
-                    if (obj is IUpdate u) _updatables.Add(u);
-                    if (obj is IDraw d) _drawables.Add(d);
+
+                    if (obj is Entity ent)
+                    {
+                        if (!_updatables.Contains(ent)) _updatables.Add(ent);
+                        if (!_drawables.Contains(ent)) _drawables.Add(ent);
+                    }
+                    else
+                    {
+                        if (obj is IUpdate u && !_updatables.Contains(u)) _updatables.Add(u);
+                        if (obj is IDraw d && !_drawables.Contains(d)) _drawables.Add(d);
+                    }
                 }
                 _toAdd.Clear();
             }

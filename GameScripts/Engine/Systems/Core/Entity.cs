@@ -3,9 +3,8 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace GameEngine.Systems
 {
-    public abstract class Entity : IUpdate, IDraw
+    public abstract class Entity : GameObject, IUpdate, IDraw
     {
-        public bool IsActive = true;
         public Transform Transform { get; }
         public int OrderInLayer { get; set; }
 
@@ -23,5 +22,9 @@ namespace GameEngine.Systems
         public abstract void Draw(GameTime gameTime, SpriteBatch sb);
 
         public void Destroy() => SceneManager.CurrentScene?.Remove(this);
+        public override void OnToggled(bool value) {
+            if (value) SceneManager.CurrentScene?.Add(this);
+            else SceneManager.CurrentScene?.Remove(this);
+        }
     }
 }

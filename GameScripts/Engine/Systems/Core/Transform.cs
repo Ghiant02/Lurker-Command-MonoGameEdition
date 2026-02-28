@@ -7,7 +7,6 @@ namespace GameEngine.Systems
         public Vector2 Position;
         public Vector2 Scale;
         public float Rotation;
-
         public Transform()
         {
             Position = Vector2.Zero;

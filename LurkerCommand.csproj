@@ -27,6 +27,7 @@
     <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.*" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Content\Fonts\" />
     <Folder Include="GameScripts\Game\NetworkSystem\" />
     <Folder Include="GameScripts\Game\MapSystem\" />
     <Folder Include="GameScripts\Game\GameSystem\" />

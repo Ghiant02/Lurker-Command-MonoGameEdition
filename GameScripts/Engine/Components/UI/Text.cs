@@ -20,7 +20,6 @@ namespace GameEngine.Components.UI
 
         public override void Draw(GameTime gameTime, SpriteBatch sb)
         {
-            if (!IsActive) return;
             sb.DrawString(Font, Content, Transform.Position, Color,
                 Transform.Rotation, Vector2.Zero, Transform.Scale, SpriteEffects.None, 0f);
         }

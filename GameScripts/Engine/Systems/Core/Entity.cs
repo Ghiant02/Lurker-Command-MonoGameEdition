@@ -8,7 +8,7 @@ namespace GameEngine.Systems
         public Transform Transform { get; }
         public int OrderInLayer { get; set; }
 
-        protected Entity(Vector2 position, Vector2 scale, float rotation = 0f)
+        protected Entity(Vector2 position, Vector2 scale, float rotation = 0f, bool isStatic = false) : base(isStatic)
         {
             Transform = new Transform
             {
@@ -19,7 +19,7 @@ namespace GameEngine.Systems
         }
 
         public virtual void Update(GameTime gameTime) { }
-        public abstract void Draw(GameTime gameTime, SpriteBatch sb);
+        public virtual void Draw(GameTime gameTime, SpriteBatch sb) { }
 
         public void Destroy() => SceneManager.CurrentScene?.Remove(this);
         public override void OnToggled(bool value) {

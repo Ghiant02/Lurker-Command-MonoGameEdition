@@ -1,6 +1,8 @@
 ﻿using GameEngine.Components.Core;
+using GameEngine.Services;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 
@@ -29,7 +31,47 @@ namespace GameEngine.Systems
             _toAdd.Add(obj);
             _needsSort = true;
         }
+        private IDraggable _currentDragged;
+        private Vector2 _dragOffset;
 
+        private Entity _draggedEntity;
+
+        /*private void HandleInput()
+        {
+            Vector2 mouseWorld = camera.ScreenToWorld(InputManager.MousePosition);
+
+            if (InputManager.IsMouseButtonPressed(MouseButton.Left))
+            {
+                for (int i = _drawables.Count - 1; i >= 0; i--)
+                {
+                    if (_drawables[i] is Entity ent && ent.Bounds.Contains(mouseWorld))
+                    {
+                        if (ent is IClickable p) p.OnPointerDown();
+
+                        if (ent is IDraggable d)
+                        {
+                            _draggedEntity = ent;
+                            _dragOffset = ent.Transform.Position - mouseWorld;
+                            d.OnDragStart();
+                        }
+
+                        break;
+                    }
+                }
+            }
+            else if (_draggedEntity != null && Mouse.GetState().LeftButton == ButtonState.Pressed)
+            {
+                if (_draggedEntity is IDraggable d)
+                {
+                    d.OnDragUpdate(mouseWorld + _dragOffset);
+                }
+            }
+            else if (_draggedEntity != null)
+            {
+                if (_draggedEntity is IDraggable d) d.OnDragEnd();
+                _draggedEntity = null;
+            }
+        }*/
         public void Remove(GameObject obj) => _toRemove.Add(obj);
 
         public void Update(GameTime gameTime)

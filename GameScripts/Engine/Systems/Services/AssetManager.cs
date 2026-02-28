@@ -1,5 +1,6 @@
-﻿using System.Collections.Generic;
-using Microsoft.Xna.Framework.Content;
+﻿using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics;
+using System.Collections.Generic;
 
 namespace GameEngine.Services
 {
@@ -20,11 +21,13 @@ namespace GameEngine.Services
             _cache.Add(path, newAsset);
             return newAsset;
         }
-
+        
         public static void Unload()
         {
             _cache.Clear();
             _content.Unload();
         }
+        public static Texture2D GetTexture(string name) => Get<Texture2D>($"Sprites/{name}");
+        public static SpriteFont GetFont(string name) => Get<SpriteFont>($"Fonts/{name}");
     }
 }

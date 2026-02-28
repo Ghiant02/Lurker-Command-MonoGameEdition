@@ -1,7 +1,10 @@
 ﻿using GameEngine.Services;
 using GameEngine.Systems;
+using LurkerCommand.Scenes;
+using LurkerCommand.Services;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 
 namespace LurkerCommand
 {
@@ -10,8 +13,7 @@ namespace LurkerCommand
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
-        public Game1()
-        {
+        public Game1() {
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             Window.Title = "Lurker Command";
@@ -20,15 +22,23 @@ namespace LurkerCommand
 
         protected override void Initialize()
         {
-            // SceneManager.SetScene(new GameplayScene()); // Пример запуска
+            AssetManager.Init(Content);
+            ConfigManager.Initialize();
+
+            _graphics.PreferredBackBufferWidth = int.Parse(ConfigManager.Get("Width"));
+            _graphics.PreferredBackBufferHeight = int.Parse(ConfigManager.Get("Height"));
+
+            _graphics.ApplyChanges();
+
+            GameScene game = new GameScene(GraphicsDevice);
+            SceneManager.SetScene(game);
+
             base.Initialize();
         }
 
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
-            
-            AssetManager.Init(Content);
         }
 
         protected override void Update(GameTime gameTime)
@@ -42,9 +52,7 @@ namespace LurkerCommand
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
             SceneManager.CurrentScene?.Draw(gameTime, _spriteBatch);
-            _spriteBatch.End();
 
             base.Draw(gameTime);
         }

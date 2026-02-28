@@ -8,9 +8,5 @@
             scene.Load();
             CurrentScene = scene;
         }
-
-        public static void CreateScene() {
-
-        }
     }
 }

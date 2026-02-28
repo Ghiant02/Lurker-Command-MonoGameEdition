@@ -1,0 +1,12 @@
+﻿namespace GameEngine.Systems {
+    public static class SceneManager
+    {
+        public static Scene CurrentScene { get; private set; }
+        public static void SetScene(Scene scene)
+        {
+            CurrentScene?.Dispose();
+            scene.Load();
+            CurrentScene = scene;
+        }
+    }
+}

@@ -9,6 +9,8 @@ namespace LurkerCommand.GameSystem
     public sealed class Unit : Text, IGrid
     {
         private int value;
+        private int maxMoves = 25;
+        private int moves;
         public const int maxValue = 9;
         public int Value
         {
@@ -19,6 +21,13 @@ namespace LurkerCommand.GameSystem
                 UpdateText();
             }
         }
+        public int Moves {
+            get => moves;
+            set {
+                moves = MathHelper.Clamp(value, 0, maxMoves);
+            }
+        }
+        private Team team;
         public Point gridPosition { get; set; }
         public Cell currentCell;
         public bool isVisible;
@@ -26,9 +35,13 @@ namespace LurkerCommand.GameSystem
         public Unit(SpriteFont font, Point gridPosition, Color color, int Value) : base(font, "", Vector2.Zero, color)
         {
             this.Value = Value;
-            BindCell(Field.GetCell(gridPosition));
+            Cell bindedCell = Field.GetCell(gridPosition);
+            BindCell(bindedCell);
         }
-
+        public void SetTeam(Team team) {
+            this.team = team;
+            Color = team.teamColor;
+        }
         public void BindCell(Cell cell)
         {
             if (currentCell == cell && !cell.IsEmpty) return;

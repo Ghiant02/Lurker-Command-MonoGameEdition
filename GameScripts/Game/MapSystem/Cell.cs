@@ -26,6 +26,7 @@ namespace LurkerCommand.MapSystem
             get => isEmpty;
             set => isEmpty = value;
         }
+        private Text moveNote;
         public Cell(Texture2D texture, Vector2 position, Vector2 scale) : base(texture, position, scale, new Color(175, 175, 175, 255), 0f, true) {
             
         }
@@ -36,6 +37,9 @@ namespace LurkerCommand.MapSystem
         public void Unbind() {
             currentUnit = null;
             IsEmpty = false;
+        }
+        public void Toggle(bool toggle) {
+            moveNote.IsActive = toggle;
         }
     }
 }

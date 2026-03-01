@@ -8,7 +8,8 @@ namespace GameEngine.Services
         private static KeyboardState _currentKeyEntry;
         private static KeyboardState _prevKeyEntry;
         private static MouseState _currentMouseEntry;
-        private static MouseState _prevMouseEntry;
+        private static MouseState _prevMouseEntry; 
+        public static int ScrollDelta => _currentMouseEntry.ScrollWheelValue - _prevMouseEntry.ScrollWheelValue;
 
         public static void Update()
         {

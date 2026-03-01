@@ -1,7 +1,9 @@
 ﻿using GameEngine.Services;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework;
 using GameEngine.Systems;
+using LurkerCommand.GameSystem;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using System;
 
 namespace LurkerCommand.MapSystem
 {
@@ -31,5 +33,41 @@ namespace LurkerCommand.MapSystem
                 }
             }
         }
+        public static void UpdateVisibility(Unit unit, Point unitPos)
+        {
+            if (unit == null) return;
+
+            ClearVisibility();
+            int radius = unit.Value;
+
+            for (int x = -radius; x <= radius; x++)
+            {
+                for (int y = -radius; y <= radius; y++)
+                {
+                    if (Math.Abs(x) + Math.Abs(y) > radius) continue;
+
+                    int cx = unitPos.X + x;
+                    int cy = unitPos.Y + y;
+
+                    if (CellInField(cx, cy))
+                    {
+                        cells[cx, cy].IsVisible = true;
+                    }
+                }
+            }
+        }
+
+        public static void ClearVisibility()
+        {
+            foreach (var cell in cells)
+            {
+                if (cell != null) cell.IsVisible = false;
+            }
+        }
+        public static bool CellInField(int x, int y) => x >= 0 && y >= 0 && x < MapWidth && y < MapHeight;
+
+        public static bool CellInField(Cell cell) => cell != null && CellInField(cell.gridPosition.X, cell.gridPosition.Y);
+        public static Cell GetCell(Point gridPosition) => cells[gridPosition.X, gridPosition.Y];
+        public static Cell GetCell(int X, int Y) => cells[X, Y];
     }
 }

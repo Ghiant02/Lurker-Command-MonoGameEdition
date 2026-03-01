@@ -31,12 +31,12 @@ namespace GameEngine.Systems
             _toAdd.Add(obj);
             _needsSort = true;
         }
-        private IDraggable _currentDragged;
+        /*private IDraggable _currentDragged;
         private Vector2 _dragOffset;
 
         private Entity _draggedEntity;
 
-        /*private void HandleInput()
+        private void HandleInput()
         {
             Vector2 mouseWorld = camera.ScreenToWorld(InputManager.MousePosition);
 

@@ -11,7 +11,7 @@ namespace GameEngine.Components.Core
         private float _rotation = 0f;
         private Matrix _transform;
         private bool _isDirty = true;
-
+        private const float minZoom = 0.5f, maxZoom = 2f;
         public Vector2 Position
         {
             get => _position;
@@ -21,7 +21,7 @@ namespace GameEngine.Components.Core
         public float Zoom
         {
             get => _zoom;
-            set { _zoom = MathHelper.Max(value, 0.1f); _isDirty = true; }
+            set { _zoom = MathHelper.Clamp(value, minZoom, maxZoom); _isDirty = true; }
         }
 
         public float Rotation

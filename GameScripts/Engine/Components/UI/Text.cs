@@ -6,20 +6,20 @@ namespace GameEngine.Components.UI
 {
     public class Text : Entity
     {
-        private string _content;
+        private string _text;
         private Vector2 _size;
         private Vector2 _origin;
 
         public Color Color;
         public SpriteFont Font;
 
-        public string Content
+        public string text
         {
-            get => _content;
+            get => _text;
             set
             {
-                if (_content == value) return;
-                _content = value;
+                if (_text == value) return;
+                _text = value;
                 UpdateSize();
             }
         }
@@ -31,18 +31,18 @@ namespace GameEngine.Components.UI
         {
             Font = font;
             Color = color;
-            Content = text;
+            this.text = text;
             _origin = Vector2.Zero;
         }
 
         private void UpdateSize()
         {
-            if (string.IsNullOrEmpty(_content))
+            if (string.IsNullOrEmpty(_text))
             {
                 _size = Vector2.Zero;
                 return;
             }
-            _size = Font.MeasureString(_content);
+            _size = Font.MeasureString(_text);
         }
 
         public void CenterOrigin() => _origin = _size * 0.5f;
@@ -59,7 +59,7 @@ namespace GameEngine.Components.UI
 
         public override void Draw(GameTime gameTime, SpriteBatch sb)
         {
-            sb.DrawString(Font, _content, Transform.Position, Color,
+            sb.DrawString(Font, _text, Transform.Position, Color,
                 Transform.Rotation, _origin, Transform.Scale, SpriteEffects.None, 0f);
         }
     }

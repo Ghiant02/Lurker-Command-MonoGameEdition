@@ -9,6 +9,7 @@ public sealed class CameraMovement : Entity
 {
     public Camera2D camera;
     public const int speed = 4;
+    public const float zoomFactor = 0.1f;
 
     private Vector2 velocity;
     private readonly Vector2 left = new Vector2(-speed, 0);
@@ -37,8 +38,11 @@ public sealed class CameraMovement : Entity
         if (InputManager.IsKeyDown(Keys.W)) velocity += down;
         else if (InputManager.IsKeyDown(Keys.S)) velocity += up;
 
-        if (InputManager.IsKeyDown(Keys.OemPlus)) camera.Zoom += 0.01f;
-        else if (InputManager.IsKeyDown(Keys.OemMinus)) camera.Zoom -= 0.01f;
+        int scroll = InputManager.ScrollDelta;
+        if (scroll != 0)
+        {
+            camera.Zoom += (scroll > 0) ? zoomFactor : -zoomFactor;
+        }
 
         MoveCamera(camera.Position + velocity);
     }

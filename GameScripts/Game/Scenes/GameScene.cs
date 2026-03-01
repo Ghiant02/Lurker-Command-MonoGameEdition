@@ -1,4 +1,5 @@
 ﻿using GameEngine.Components.Core;
+using GameEngine.Services;
 using GameEngine.Systems;
 using LurkerCommand.GameSystem;
 using LurkerCommand.MapSystem;
@@ -13,11 +14,16 @@ namespace LurkerCommand.Scenes
             this.device = device;
         }
         public override void Load() {
-            Camera2D cm = new Camera2D(device);
-            SetCamera(cm);
-            CameraMovement cmMovement = new CameraMovement(cm, new Vector2(-400f, -400f));
-            Add(cmMovement);
             Field.SetMap(this);
+            Camera2D cm = new Camera2D(device);
+
+            SetCamera(cm);
+
+            CameraMovement cmMovement = new CameraMovement(cm, new Vector2(-100f, -100f));
+            Unit unit = new Unit(AssetManager.GetFont("Arial"), new Point(4, 1), Color.Red, 3);
+
+            Add(cmMovement);
+            Add(unit);
         }
     }
 }

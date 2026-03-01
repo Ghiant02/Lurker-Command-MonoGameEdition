@@ -13,12 +13,12 @@
 
 #---------------------------------- Content ---------------------------------#
 
-#begin Fonts/JetBrainsMono.spritefont
+#begin Fonts/Arial.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
 /processorParam:PremultiplyAlpha=True
 /processorParam:TextureFormat=Compressed
-/build:Fonts/JetBrainsMono.spritefont
+/build:Fonts/Arial.spritefont
 
 #begin Sprites/square.jpg
 /importer:TextureImporter

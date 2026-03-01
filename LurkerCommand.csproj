@@ -9,6 +9,7 @@
     <OptimizationPreference>Speed</OptimizationPreference>
     <StackTraceSupport>true</StackTraceSupport> <InvariantGlobalization>true</InvariantGlobalization> <PublishReadyToRun>false</PublishReadyToRun> <TieredCompilation>false</TieredCompilation>
     <StripSymbols>true</StripSymbols>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <PropertyGroup>

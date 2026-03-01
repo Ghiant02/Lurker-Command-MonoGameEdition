@@ -33,10 +33,10 @@ namespace LurkerCommand.MapSystem
                 }
             }
         }
-        public static void UpdateVisibility(Unit unit, Point unitPos)
+        public static void UpdateVisibility(Unit unit)
         {
             if (unit == null) return;
-
+            Point unitPos = unit.gridPosition;
             ClearVisibility();
             int radius = unit.Value;
 
@@ -61,7 +61,7 @@ namespace LurkerCommand.MapSystem
         {
             foreach (var cell in cells)
             {
-                if (cell != null) cell.IsVisible = false;
+                cell?.IsVisible = false;
             }
         }
         public static bool CellInField(int x, int y) => x >= 0 && y >= 0 && x < MapWidth && y < MapHeight;

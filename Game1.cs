@@ -63,7 +63,7 @@ namespace LurkerCommand
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Black);
 
             SceneManager.CurrentScene?.Draw(gameTime, _spriteBatch);
 

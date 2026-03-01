@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace GameEngine.Systems
 {
@@ -78,10 +79,10 @@ namespace GameEngine.Systems
         {
             SyncCollections();
 
-            int count = _updatables.Count;
-            for (int i = 0; i < count; i++)
+            Span<IUpdate> updatables = CollectionsMarshal.AsSpan(_updatables);
+            for (int i = 0; i < updatables.Length; i++)
             {
-                _updatables[i].Update(gameTime);
+                updatables[i].Update(gameTime);
             }
         }
         public virtual void Dispose()
@@ -110,12 +111,11 @@ namespace GameEngine.Systems
                 camera.GetViewMatrix()
             );
 
-            int count = _drawables.Count;
-            for (int i = 0; i < count; i++)
+            Span<IDraw> drawables = CollectionsMarshal.AsSpan(_drawables);
+            for (int i = 0; i < drawables.Length; i++)
             {
-                _drawables[i].Draw(gameTime, spriteBatch);
+                drawables[i].Draw(gameTime, spriteBatch);
             }
-
             spriteBatch.End();
         }
 

@@ -9,7 +9,7 @@ using System.Collections.Generic;
 public sealed class CameraMovement : Entity
 {
     public Camera2D camera;
-    public const int speed = 4;
+    public const int speed = 5;
     public const float zoomFactor = 0.1f;
 
     private Vector2 velocity;
@@ -28,7 +28,6 @@ public sealed class CameraMovement : Entity
         this.camera = camera;
         MoveCamera(startPosition);
     }
-
     public override void Update(GameTime gameTime)
     {
         HandleInput();

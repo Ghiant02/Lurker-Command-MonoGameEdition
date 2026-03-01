@@ -20,7 +20,7 @@ namespace LurkerCommand.Scenes
             SetCamera(cm);
 
             CameraMovement cmMovement = new CameraMovement(cm, new Vector2(-100f, -100f));
-            Unit unit = new Unit(AssetManager.GetFont("Arial"), new Point(4, 1), Color.Red, 3);
+            Unit unit = new Unit(AssetManager.GetFont("Arial"), new Point(4, 1), 3, new Team(Color.Red));
 
             Add(cmMovement);
             Add(unit);

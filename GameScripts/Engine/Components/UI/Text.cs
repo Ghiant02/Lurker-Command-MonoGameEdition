@@ -1,10 +1,11 @@
-﻿using GameEngine.Systems;
+﻿using GameEngine.Services;
+using GameEngine.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace GameEngine.Components.UI
 {
-    public class Text : Entity
+    public class Text : Entity, IRect
     {
         private string _text;
         private Vector2 _size;
@@ -26,7 +27,7 @@ namespace GameEngine.Components.UI
 
         public Vector2 Origin { get => _origin; set => _origin = value; }
 
-        public Text(SpriteFont font, string text, Vector2 position, Color color, bool isStatic = false)
+        public Text(SpriteFont font, string text, Vector2 position, Color color = default, bool isStatic = false)
             : base(position, Vector2.One, 0f, isStatic)
         {
             Font = font;
@@ -50,17 +51,17 @@ namespace GameEngine.Components.UI
         public Rectangle GetBounds()
         {
             return new Rectangle(
-                (int)(Transform.Position.X - _origin.X * Transform.Scale.X),
-                (int)(Transform.Position.Y - _origin.Y * Transform.Scale.Y),
-                (int)(_size.X * Transform.Scale.X),
-                (int)(_size.Y * Transform.Scale.Y)
+                (int)(Transform.LocalPosition.X - _origin.X * Transform.LocalScale.X),
+                (int)(Transform.LocalPosition.Y - _origin.Y * Transform.LocalScale.Y),
+                (int)(_size.X * Transform.LocalScale.X),
+                (int)(_size.Y * Transform.LocalScale.Y)
             );
         }
 
         public override void Draw(GameTime gameTime, SpriteBatch sb)
         {
-            sb.DrawString(Font, _text, Transform.Position, Color,
-                Transform.Rotation, _origin, Transform.Scale, SpriteEffects.None, 0f);
+            sb.DrawString(Font, _text, Transform.LocalPosition, Color,
+                Transform.LocalRotation, _origin, Transform.LocalScale, SpriteEffects.None, 0f);
         }
     }
 }

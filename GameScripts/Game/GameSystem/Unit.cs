@@ -1,16 +1,22 @@
 ﻿using GameEngine.Components.UI;
+using GameEngine.Services;
+using GameEngine.Systems;
 using LurkerCommand.MapSystem;
 using LurkerCommand.Services;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 
 namespace LurkerCommand.GameSystem
 {
-    public sealed class Unit : Text, IGrid
+    public sealed class Unit : Entity, IGrid, IDraggable, IRect
     {
         private int value;
         private int maxMoves = 25;
         private int moves;
+        private Team team;
+        private const float draggingColorMultiplier = 0.6f;
+        public Text valueText;
         public const int maxValue = 9;
         public int Value
         {
@@ -27,39 +33,90 @@ namespace LurkerCommand.GameSystem
                 moves = MathHelper.Clamp(value, 0, maxMoves);
             }
         }
-        private Team team;
+        public Action onMoved;
         public Point gridPosition { get; set; }
         public Cell currentCell;
         public bool isVisible;
-
-        public Unit(SpriteFont font, Point gridPosition, Color color, int Value) : base(font, "", Vector2.Zero, color)
+        public Unit(SpriteFont font, Point gridPosition, int Value, Team team) : base(Vector2.Zero, Vector2.One)
         {
+            valueText = new Text(font, "", Vector2.Zero);
+            valueText.Transform.Parent = Transform;
             this.Value = Value;
+            Moves = Value;
+
             Cell bindedCell = Field.GetCell(gridPosition);
-            BindCell(bindedCell);
+            MoveUnit(bindedCell);
+
+            valueText.Color = team.teamColor;
+            this.team = team;
+            SceneManager.Add(valueText);
         }
         public void SetTeam(Team team) {
             this.team = team;
-            Color = team.teamColor;
+            valueText.Color = team.teamColor;
         }
         public void BindCell(Cell cell)
         {
             if (currentCell == cell && !cell.IsEmpty) return;
-
             cell.BindUnit(this);
-            Transform.Position = cell.Transform.Position + cell.GetSize().ToVector2() * 0.5f;
-
+            
             currentCell?.Unbind();
             currentCell = cell;
-            gridPosition = cell.gridPosition;
-
-            Field.UpdateVisibility(this);
+        }
+        public override void Draw(GameTime gameTime, SpriteBatch sb)
+        {
+            valueText.Draw(gameTime, sb);
+        }
+        public Rectangle GetBounds() => valueText.GetBounds();
+        public void MoveUnit(Cell cell, int steps = 0) {
+            if (CanMove()) {
+                BindCell(cell);
+                MoveTo(cell);
+                Value -= steps;
+                Moves -= steps;
+                gridPosition = cell.gridPosition;
+                Field.UpdateVisibility(this);
+                onMoved?.Invoke();
+            }
+            else {
+                MoveTo(currentCell);
+            }
+        }
+        public bool CanMove() => Value > 1 && Moves > 0;
+        private void MoveTo(Cell cell) {
+            Transform.LocalPosition = cell.Transform.LocalPosition + cell.cellImage.GetSize().ToVector2() * 0.5f;
+        }
+        public void UpdateText() {
+            valueText.text = value.ToString();
+            valueText.CenterOrigin();
         }
 
-        public void UpdateText()
+        public void OnDragStart() {
+            valueText.Color *= draggingColorMultiplier;
+            if(CanMove()) 
+                Field.ToggleMoveNotes(currentCell, true, Value);
+        }
+
+        public void OnDragUpdate(Vector2 position) {
+            Transform.LocalPosition = position;
+        }
+
+        public void OnDragEnd()
         {
-            text = value.ToString();
-            CenterOrigin();
+            valueText.Color = team.teamColor;
+            Field.ToggleMoveNotes(currentCell, false, Moves);
+
+            Cell targetCell = Field.GetCellByWorldPos(Transform.LocalPosition);
+            var availableCells = Field.GetAvailableCells(currentCell, Moves);
+
+            if (targetCell != null && availableCells.Contains(targetCell))
+            {
+                int distance = Math.Abs(targetCell.gridPosition.X - currentCell.gridPosition.X) +
+                               Math.Abs(targetCell.gridPosition.Y - currentCell.gridPosition.Y);
+
+                MoveUnit(targetCell, distance);
+            }
+            else MoveTo(currentCell);
         }
     }
 }

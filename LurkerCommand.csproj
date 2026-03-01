@@ -23,14 +23,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Icon.ico" />
     <None Remove="Icon.bmp" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Icon.ico">
-      <LogicalName>Icon.ico</LogicalName>
-    </EmbeddedResource>
+    <Content Include="Icon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Include="Icon.bmp">
       <LogicalName>Icon.bmp</LogicalName>
     </EmbeddedResource>

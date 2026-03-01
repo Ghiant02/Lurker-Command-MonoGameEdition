@@ -3,7 +3,10 @@ using GameEngine.Systems;
 using LurkerCommand.GameSystem;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace LurkerCommand.MapSystem
 {
@@ -15,17 +18,21 @@ namespace LurkerCommand.MapSystem
         public static int MapWidth { get; private set; }
         public static int MapHeight { get; private set; }
 
+        public static int CellWidth { get; private set; }
+        public static int CellHeight { get; private set; }
+
         public static void SetMap(Scene scene) {
             Texture2D cellTexture = AssetManager.GetTexture("square");
 
-            int cellWidth = cellTexture.Width * cellScale;
-            int cellHeight = cellTexture.Height * cellScale;
-            MapWidth = sizeX * cellTexture.Width * cellScale;
-            MapHeight = sizeY * cellTexture.Height * cellScale;
+            CellWidth = cellTexture.Width * cellScale;
+            CellHeight = cellTexture.Height * cellScale;
+
+            MapWidth = sizeX * CellWidth;
+            MapHeight = sizeY * CellHeight;
 
             for (byte x = 0; x < sizeX; x++) {
                 for (byte y = 0; y < sizeY; y++) {
-                    Vector2 worldPosition = new Vector2(x * cellWidth, y * cellHeight);
+                    Vector2 worldPosition = new Vector2(x * CellWidth, y * CellHeight);
 
                     cells[x, y] = new Cell(cellTexture, worldPosition, new Vector2(cellScale, cellScale));
                     cells[x, y].gridPosition = new Point(x, y);
@@ -62,6 +69,50 @@ namespace LurkerCommand.MapSystem
             foreach (var cell in cells)
             {
                 cell?.IsVisible = false;
+            }
+        }
+        public static List<Cell> GetAvailableCells(Cell startCell, int moves)
+        {
+            List<Cell> output = new List<Cell>();
+            Point pos = startCell.gridPosition;
+
+            for (int i = -moves; i <= moves; i++)
+            {
+                if (i == 0) continue;
+                TryAdd(pos.X + i, pos.Y);
+
+                TryAdd(pos.X, pos.Y + i);
+            }
+
+            void TryAdd(int x, int y)
+            {
+                if (CellInField(x, y))
+                {
+                    Cell targetCell = cells[x, y];
+                    if (targetCell != null && targetCell.IsEmpty)
+                    {
+                        output.Add(targetCell);
+                    }
+                }
+            }
+
+            return output;
+        }
+        public static Cell GetCellByWorldPos(Vector2 worldPosition)
+        {
+            int x = (int)(worldPosition.X / CellWidth);
+            int y = (int)(worldPosition.Y / CellHeight);
+
+            if (CellInField(x, y))
+            {
+                return cells[x, y];
+            }
+            return null;
+        }
+        public static void ToggleMoveNotes(Cell cell, bool toggle, int value) {
+            Span<Cell> available = CollectionsMarshal.AsSpan(GetAvailableCells(cell, value));
+            for(byte i = 0; i < available.Length; i++) {
+                available[i].Toggle(toggle);
             }
         }
         public static bool CellInField(int x, int y) => x >= 0 && y >= 0 && x < MapWidth && y < MapHeight;

@@ -32,7 +32,7 @@ namespace GameEngine.Systems
             _toAdd.Add(obj);
             _needsSort = true;
         }
-        /*private IDraggable _currentDragged;
+        private IDraggable _currentDragged;
         private Vector2 _dragOffset;
 
         private Entity _draggedEntity;
@@ -43,41 +43,50 @@ namespace GameEngine.Systems
 
             if (InputManager.IsMouseButtonPressed(MouseButton.Left))
             {
-                for (int i = _drawables.Count - 1; i >= 0; i--)
+                Span<IDraw> drawables = CollectionsMarshal.AsSpan(_drawables);
+                for (int i = drawables.Length - 1; i >= 0; i--)
                 {
-                    if (_drawables[i] is Entity ent && ent.Bounds.Contains(mouseWorld))
+                    var obj = drawables[i];
+
+                    if (obj is IRect rectable)
                     {
-                        if (ent is IClickable p) p.OnPointerDown();
-
-                        if (ent is IDraggable d)
+                        if (rectable.GetBounds().Contains(mouseWorld.ToPoint()))
                         {
-                            _draggedEntity = ent;
-                            _dragOffset = ent.Transform.Position - mouseWorld;
-                            d.OnDragStart();
-                        }
+                            if (obj is IClickable clickable) clickable.OnPointerDown();
 
-                        break;
+                            if (obj is IDraggable draggable)
+                            {
+                                _currentDragged = draggable;
+                                _draggedEntity = obj as Entity;
+
+                                if (_draggedEntity != null)
+                                {
+                                    _dragOffset = _draggedEntity.Transform.LocalPosition - mouseWorld;
+                                    _currentDragged.OnDragStart();
+                                }
+                            }
+                            break;
+                        }
                     }
                 }
             }
             else if (_draggedEntity != null && Mouse.GetState().LeftButton == ButtonState.Pressed)
             {
-                if (_draggedEntity is IDraggable d)
-                {
-                    d.OnDragUpdate(mouseWorld + _dragOffset);
-                }
+                _currentDragged.OnDragUpdate(mouseWorld + _dragOffset);
             }
             else if (_draggedEntity != null)
             {
-                if (_draggedEntity is IDraggable d) d.OnDragEnd();
+                _currentDragged.OnDragEnd();
                 _draggedEntity = null;
+                _currentDragged = null;
             }
-        }*/
+        }
         public void Remove(GameObject obj) => _toRemove.Add(obj);
 
         public void Update(GameTime gameTime)
         {
             SyncCollections();
+            HandleInput();
 
             Span<IUpdate> updatables = CollectionsMarshal.AsSpan(_updatables);
             for (int i = 0; i < updatables.Length; i++)

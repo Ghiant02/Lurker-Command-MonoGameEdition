@@ -12,19 +12,18 @@ namespace GameEngine.Systems
         {
             Transform = new Transform
             {
-                Position = position,
-                Scale = scale,
-                Rotation = rotation
+                LocalPosition = position,
+                LocalScale = scale,
+                LocalRotation = rotation
             };
         }
-
         public virtual void Update(GameTime gameTime) { }
         public virtual void Draw(GameTime gameTime, SpriteBatch sb) { }
 
         public void Destroy() => SceneManager.CurrentScene?.Remove(this);
         public override void OnToggled(bool value) {
-            if (value) SceneManager.CurrentScene?.Add(this);
-            else SceneManager.CurrentScene?.Remove(this);
+            if (value) SceneManager.Add(this);
+            else SceneManager.Remove(this);
         }
     }
 }

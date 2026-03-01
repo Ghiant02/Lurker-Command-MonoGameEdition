@@ -8,5 +8,7 @@
             scene.Load();
             CurrentScene = scene;
         }
+        public static void Add(GameObject gameObject) => CurrentScene?.Add(gameObject);
+        public static void Remove(GameObject gameObject) => CurrentScene?.Remove(gameObject);
     }
 }

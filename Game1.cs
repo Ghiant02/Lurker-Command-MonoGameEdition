@@ -60,9 +60,9 @@ namespace LurkerCommand
             SceneManager.CurrentScene?.Update(gameTime);
             base.Update(gameTime);
         }
-
         protected override void Draw(GameTime gameTime)
         {
+            if (IsActive) return;
             GraphicsDevice.Clear(Color.Black);
 
             SceneManager.CurrentScene?.Draw(gameTime, _spriteBatch);

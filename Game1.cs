@@ -4,6 +4,8 @@ using LurkerCommand.Scenes;
 using LurkerCommand.Services;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using System;
 
 namespace LurkerCommand
 {
@@ -11,7 +13,7 @@ namespace LurkerCommand
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
-
+        private Keys FullScreenKey;
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -30,7 +32,10 @@ namespace LurkerCommand
             Window.AllowAltF4 = bool.Parse(ConfigManager.Get("AltF4", "true"));
             Window.AllowUserResizing = bool.Parse(ConfigManager.Get("AllowResizing", "false"));
             Window.Title = ConfigManager.Get("WindowTitle", "Lurker Command");
-
+            if (!Enum.TryParse(ConfigManager.Get("FullScreenKey", "F11"), out FullScreenKey))
+            {
+                FullScreenKey = Keys.F11;
+            }
             _graphics.HardwareModeSwitch = false;
 
             _graphics.ApplyChanges();
@@ -49,6 +54,9 @@ namespace LurkerCommand
         protected override void Update(GameTime gameTime)
         {
             InputManager.Update();
+            if(InputManager.IsKeyPressed(FullScreenKey)) {
+                _graphics.ToggleFullScreen();
+            }
             SceneManager.CurrentScene?.Update(gameTime);
             base.Update(gameTime);
         }

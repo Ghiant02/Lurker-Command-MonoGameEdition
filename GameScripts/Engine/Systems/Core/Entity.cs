@@ -20,7 +20,7 @@ namespace GameEngine.Systems
         public virtual void Update(GameTime gameTime) { }
         public virtual void Draw(GameTime gameTime, SpriteBatch sb) { }
 
-        public void Destroy() => SceneManager.CurrentScene?.Remove(this);
+        public void Destroy() => SceneManager.Remove(this);
         public override void OnToggled(bool value) {
             if (value) SceneManager.Add(this);
             else SceneManager.Remove(this);

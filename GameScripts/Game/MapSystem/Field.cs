@@ -3,7 +3,6 @@ using GameEngine.Systems;
 using LurkerCommand.GameSystem;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -11,6 +10,9 @@ using System.Runtime.InteropServices;
 namespace LurkerCommand.MapSystem
 {
     public static class Field {
+        private static readonly Queue<(Cell cell, int dist)> _bfsQueue = new(256);
+        private static readonly HashSet<Cell> _visited = new(256);
+        private static readonly List<Cell> _result = new(256);
         private const byte sizeX = 32;
         private const byte sizeY = 32;
         private const byte cellScale = 2;
@@ -63,7 +65,6 @@ namespace LurkerCommand.MapSystem
                 }
             }
         }
-
         public static void ClearVisibility()
         {
             foreach (var cell in cells)
@@ -71,54 +72,59 @@ namespace LurkerCommand.MapSystem
                 cell?.IsVisible = false;
             }
         }
-        public static List<Cell> GetAvailableCells(Cell startCell, int moves)
+
+        public static ReadOnlySpan<Cell> GetAvailableCells(Cell startCell, int maxRange)
         {
-            List<Cell> output = new List<Cell>();
-            Point pos = startCell.gridPosition;
+            _bfsQueue.Clear();
+            _visited.Clear();
+            _result.Clear();
 
-            for (int i = -moves; i <= moves; i++)
+            _bfsQueue.Enqueue((startCell, 0));
+            _visited.Add(startCell);
+
+            while (_bfsQueue.Count > 0)
             {
-                if (i == 0) continue;
-                TryAdd(pos.X + i, pos.Y);
+                var (current, dist) = _bfsQueue.Dequeue();
+                if (dist > 0) _result.Add(current);
+                if (dist >= maxRange) continue;
 
-                TryAdd(pos.X, pos.Y + i);
+                Point p = current.gridPosition;
+                CheckNeighbor(p.X + 1, p.Y, dist + 1);
+                CheckNeighbor(p.X - 1, p.Y, dist + 1);
+                CheckNeighbor(p.X, p.Y + 1, dist + 1);
+                CheckNeighbor(p.X, p.Y - 1, dist + 1);
             }
 
-            void TryAdd(int x, int y)
-            {
-                if (CellInField(x, y))
-                {
-                    Cell targetCell = cells[x, y];
-                    if (targetCell != null && targetCell.IsEmpty)
-                    {
-                        output.Add(targetCell);
-                    }
-                }
-            }
-
-            return output;
+            return CollectionsMarshal.AsSpan(_result);
         }
-        public static Cell GetCellByWorldPos(Vector2 worldPosition)
-        {
-            int x = (int)(worldPosition.X / CellWidth);
-            int y = (int)(worldPosition.Y / CellHeight);
 
-            if (CellInField(x, y))
+        private static void CheckNeighbor(int x, int y, int newDist)
+        {
+            Cell neighbor = GetCell(new Point(x, y));
+            if (neighbor != null && neighbor.IsEmpty && _visited.Add(neighbor))
             {
-                return cells[x, y];
+                _bfsQueue.Enqueue((neighbor, newDist));
             }
-            return null;
+        }
+        public static Cell GetCellByWorldPos(Vector2 worldPosition) {
+            int x = (int)Math.Floor(worldPosition.X / CellWidth);
+            int y = (int)Math.Floor(worldPosition.Y / CellHeight);
+
+            return GetCell(x, y);
         }
         public static void ToggleMoveNotes(Cell cell, bool toggle, int value) {
-            Span<Cell> available = CollectionsMarshal.AsSpan(GetAvailableCells(cell, value));
-            for(byte i = 0; i < available.Length; i++) {
+            ReadOnlySpan<Cell> available = GetAvailableCells(cell, value);
+            for (byte i = 0; i < available.Length; i++) {
                 available[i].Toggle(toggle);
             }
         }
-        public static bool CellInField(int x, int y) => x >= 0 && y >= 0 && x < MapWidth && y < MapHeight;
-
+        public static bool CellInField(int x, int y) => x >= 0 && y >= 0 && x < sizeX && y < sizeY;
         public static bool CellInField(Cell cell) => cell != null && CellInField(cell.gridPosition.X, cell.gridPosition.Y);
-        public static Cell GetCell(Point gridPosition) => cells[gridPosition.X, gridPosition.Y];
-        public static Cell GetCell(int X, int Y) => cells[X, Y];
+        public static Cell GetCell(Point gridPosition) => GetCell(gridPosition.X, gridPosition.Y);
+        public static Cell GetCell(int x, int y)
+        {
+            if (CellInField(x, y)) return cells[x, y];
+            return null;
+        }
     }
 }

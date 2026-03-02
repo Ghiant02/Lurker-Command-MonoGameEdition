@@ -41,6 +41,7 @@ namespace LurkerCommand.GameSystem
         {
             valueText = new Text(font, "", Vector2.Zero);
             valueText.Transform.Parent = Transform;
+
             this.Value = Value;
             Moves = Value;
 
@@ -49,7 +50,6 @@ namespace LurkerCommand.GameSystem
 
             valueText.Color = team.teamColor;
             this.team = team;
-            SceneManager.Add(valueText);
         }
         public void SetTeam(Team team) {
             this.team = team;
@@ -88,7 +88,6 @@ namespace LurkerCommand.GameSystem
         }
         public void UpdateText() {
             valueText.text = value.ToString();
-            valueText.CenterOrigin();
         }
 
         public void OnDragStart() {

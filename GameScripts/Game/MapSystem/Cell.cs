@@ -37,15 +37,23 @@ namespace LurkerCommand.MapSystem
             set => isEmpty = value;
         }
         private Text moveNote;
-        public Cell(Texture2D texture, Vector2 position, Vector2 scale) : base(position, scale, 0f, true) {
-            cellImage = new Image(texture, position, scale, new Color(175, 175, 175, 255));
+        public Cell(Texture2D texture, Vector2 position, Vector2 scale) : base(position, scale, 0f, true)
+        {
+            cellImage = new Image(texture, Vector2.Zero, scale, new Color(175, 175, 175, 255));
+            cellImage.Transform.Parent = Transform;
+            cellImage.OrderInLayer = -1;
             Init();
-            SceneManager.Add(cellImage);
         }
-        private void Init() {
-            moveNote = new Text(AssetManager.GetFont("Arial"), dot, Transform.LocalPosition, Color.LightGreen, true);
-            moveNote.Transform.LocalPosition = Transform.LocalPosition + cellImage.GetSize().ToVector2() * 0.5f;
-            SceneManager.Add(moveNote);
+
+        private void Init()
+        {
+            moveNote = new Text(AssetManager.GetFont("Arial"), dot, Vector2.Zero, Color.LightGreen, true);
+            moveNote.Transform.Parent = Transform;
+            moveNote.Transform.LocalScale = Transform.LocalScale;
+            Vector2 cellSize = cellImage.GetSize().ToVector2();
+            Vector2 center = cellSize * 0.25f;
+            moveNote.Transform.LocalPosition = center;
+
             Toggle(false);
         }
         public void BindUnit(Unit unit) {

@@ -2,14 +2,17 @@
 using GameEngine.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 
 namespace GameEngine.Components.UI
 {
-    public class Text : Entity, IRect
+    public sealed class Text : Entity, IRect
     {
-        private string _text;
+        private string _text = string.Empty;
         private Vector2 _size;
         private Vector2 _origin;
+        private Rectangle _cachedBounds;
+        private bool _boundsDirty = true;
 
         public Color Color;
         public SpriteFont Font;
@@ -19,49 +22,77 @@ namespace GameEngine.Components.UI
             get => _text;
             set
             {
-                if (_text == value) return;
+                if (value == null) value = string.Empty;
+                if (ReferenceEquals(_text, value) || _text == value) return;
+
                 _text = value;
-                UpdateSize();
+                UpdateMetrics();
             }
         }
 
-        public Vector2 Origin { get => _origin; set => _origin = value; }
+        public Vector2 Origin { get => _origin; set { _origin = value; _boundsDirty = true; } }
 
         public Text(SpriteFont font, string text, Vector2 position, Color color = default, bool isStatic = false)
             : base(position, Vector2.One, 0f, isStatic)
         {
-            Font = font;
+            Font = font ?? throw new ArgumentNullException(nameof(font));
             Color = color;
-            this.text = text;
-            _origin = Vector2.Zero;
+            _text = text ?? string.Empty;
+            UpdateMetrics();
         }
 
-        private void UpdateSize()
+        private void UpdateMetrics()
         {
             if (string.IsNullOrEmpty(_text))
             {
                 _size = Vector2.Zero;
-                return;
+                _origin = Vector2.Zero;
             }
-            _size = Font.MeasureString(_text);
+            else
+            {
+                _size = Font.MeasureString(_text);
+                _origin = new Vector2(
+                    (float)Math.Floor(_size.X * 0.5f),
+                    (float)Math.Floor(_size.Y * 0.5f)
+                );
+            }
+            _boundsDirty = true;
         }
-
-        public void CenterOrigin() => _origin = _size * 0.5f;
 
         public Rectangle GetBounds()
         {
-            return new Rectangle(
-                (int)(Transform.LocalPosition.X - _origin.X * Transform.LocalScale.X),
-                (int)(Transform.LocalPosition.Y - _origin.Y * Transform.LocalScale.Y),
-                (int)(_size.X * Transform.LocalScale.X),
-                (int)(_size.Y * Transform.LocalScale.Y)
-            );
+            if (_boundsDirty)
+            {
+                UpdateBounds();
+            }
+            return _cachedBounds;
         }
 
+        private void UpdateBounds()
+        {
+            Vector2 worldPos = Transform.WorldPosition;
+            Vector2 scale = Transform.LocalScale;
+
+            _cachedBounds = new Rectangle(
+                (int)(worldPos.X - _origin.X * scale.X),
+                (int)(worldPos.Y - _origin.Y * scale.Y),
+                (int)(_size.X * scale.X),
+                (int)(_size.Y * scale.Y)
+            );
+            _boundsDirty = false;
+        }
         public override void Draw(GameTime gameTime, SpriteBatch sb)
         {
-            sb.DrawString(Font, _text, Transform.LocalPosition, Color,
+            if (string.IsNullOrEmpty(_text)) return;
+
+            sb.DrawString(Font, _text, Transform.WorldPosition, Color,
                 Transform.LocalRotation, _origin, Transform.LocalScale, SpriteEffects.None, 0f);
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            base.Update(gameTime);
+            _boundsDirty = true;
         }
     }
 }

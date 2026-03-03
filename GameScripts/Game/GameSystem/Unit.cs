@@ -49,12 +49,12 @@ namespace LurkerCommand.GameSystem
             Cell bindedCell = Field.GetCell(gridPosition);
             MoveUnit(bindedCell);
 
-            valueText.Color = team.teamColor;
+            valueText.Color = team.TeamColor;
             this.team = team;
         }
         public void SetTeam(Team team) {
             this.team = team;
-            valueText.Color = team.teamColor;
+            valueText.Color = team.TeamColor;
         }
         public void BindCell(Cell cell)
         {
@@ -104,7 +104,7 @@ namespace LurkerCommand.GameSystem
 
         public void OnDragEnd()
         {
-            valueText.Color = team.teamColor;
+            valueText.Color = team.TeamColor;
             Field.ToggleMoveNotes(currentCell, false, Moves);
 
             Cell targetCell = Field.GetCellByWorldPos(Transform.LocalPosition);

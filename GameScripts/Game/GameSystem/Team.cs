@@ -5,30 +5,41 @@ using System.Runtime.InteropServices;
 
 namespace LurkerCommand.GameSystem
 {
-    public class Team {
-        private List<Unit> units = new List<Unit>();
-        public readonly Color teamColor;
-        private int moves;
-        public int Moves {
-            get => moves;
-            set => moves = MathHelper.Clamp(value, 0, int.MaxValue);
+    public sealed class Team
+    {
+        private readonly List<Unit> _units = new(16);
+
+        public int Moves { get; private set; }
+        public float TimeLeft { get; set; }
+        public readonly Color TeamColor;
+        public bool IsActive { get; set; }
+
+        public Team(Color color, float startTime)
+        {
+            TeamColor = color;
+            TimeLeft = startTime;
         }
-        public void AddUnit(Unit unit) {
+
+        public void AddUnit(Unit unit)
+        {
             unit.SetTeam(this);
-            units.Add(unit);
+            _units.Add(unit);
         }
-        public void RemoveUnit(Unit unit) {
-            unit.SetTeam(null);
-            units.Remove(unit);
-        }
-        public void SumMoves() {
-            Span<Unit> span = CollectionsMarshal.AsSpan(units);
-            for(int i = 0; i < span.Length; i++) {
-                Moves += span[i].Moves;
+
+        public void RefreshTurn(float baseTime)
+        {
+            Moves = 0;
+            var span = CollectionsMarshal.AsSpan(_units);
+            for (int i = 0; i < span.Length; i++)
+            {
+                Moves += span[i].Value;
             }
+
+            TimeLeft = baseTime * TeamManager.TimeMultiplier;
         }
-        public Team(Color teamColor) {
-            this.teamColor = teamColor;
-        }
+
+        public void ConsumeMove() => Moves = Math.Max(0, Moves - 1);
+
+        public ReadOnlySpan<Unit> GetUnits() => CollectionsMarshal.AsSpan(_units);
     }
 }

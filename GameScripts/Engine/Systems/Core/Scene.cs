@@ -2,7 +2,6 @@
 using GameEngine.Services;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -13,13 +12,12 @@ namespace GameEngine.Systems
     {
         private readonly List<IUpdate> _updatables = new(1024);
         private readonly List<IDraw> _drawables = new(1024);
-
         private readonly List<IRect> _inputTargets = new(512);
 
         private readonly List<GameObject> _toAdd = new(128);
         private readonly List<GameObject> _toRemove = new(128);
 
-        private Camera2D camera;
+        protected Camera2D camera;
         private bool _needsSort;
 
         private IDraggable _currentDragged;
@@ -28,16 +26,30 @@ namespace GameEngine.Systems
 
         public void Add(GameObject obj) => _toAdd.Add(obj);
         public void Remove(GameObject obj) => _toRemove.Add(obj);
+        public virtual void Update(GameTime gameTime)
+        {
+            HandleInput();
+            SyncCollections();
+
+            var updateSpan = CollectionsMarshal.AsSpan(_updatables);
+            for (int i = 0; i < updateSpan.Length; i++)
+            {
+                updateSpan[i].Update(gameTime);
+            }
+        }
 
         private void HandleInput()
         {
+            if (camera == null) return;
+
             Vector2 mouseWorld = camera.ScreenToWorld(InputManager.MousePosition);
 
             if (InputManager.IsMouseButtonPressed(MouseButton.Left))
             {
-                for (int i = _inputTargets.Count - 1; i >= 0; i--)
+                var inputSpan = CollectionsMarshal.AsSpan(_inputTargets);
+                for (int i = inputSpan.Length - 1; i >= 0; i--)
                 {
-                    var rectable = _inputTargets[i];
+                    var rectable = inputSpan[i];
                     if (rectable.GetBounds().Contains(mouseWorld.ToPoint()))
                     {
                         if (rectable is IClickable clickable) clickable.OnPointerDown();
@@ -57,7 +69,7 @@ namespace GameEngine.Systems
                     }
                 }
             }
-            else if (_draggedEntity != null && Mouse.GetState().LeftButton == ButtonState.Pressed)
+            else if (_draggedEntity != null && InputManager.IsMouseButtonDown(MouseButton.Left))
             {
                 _currentDragged.OnDragUpdate(mouseWorld + _dragOffset);
             }
@@ -69,41 +81,40 @@ namespace GameEngine.Systems
             }
         }
 
-        public void Update(GameTime gameTime)
-        {
-            HandleInput();
-            SyncCollections();
-
-            for (int i = 0; i < _updatables.Count; i++)
-            {
-                _updatables[i].Update(gameTime);
-            }
-        }
-
         private void SyncCollections()
         {
             if (_toAdd.Count == 0 && _toRemove.Count == 0) return;
 
-            foreach (var obj in _toRemove)
+            if (_toRemove.Count > 0)
             {
-                if (obj is IUpdate u) _updatables.Remove(u);
-                if (obj is IDraw d) _drawables.Remove(d);
-                if (obj is IRect r) _inputTargets.Remove(r);
+                for (int i = 0; i < _toRemove.Count; i++)
+                {
+                    var obj = _toRemove[i];
+                    if (obj is IUpdate u) _updatables.Remove(u);
+                    if (obj is IDraw d) _drawables.Remove(d);
+                    if (obj is IRect r) _inputTargets.Remove(r);
+                }
+                _toRemove.Clear();
             }
-            _toRemove.Clear();
 
-            foreach (var obj in _toAdd)
+            if (_toAdd.Count > 0)
             {
-                if (obj is IUpdate u && !_updatables.Contains(u)) _updatables.Add(u);
-                if (obj is IDraw d && !_drawables.Contains(d)) _drawables.Add(d);
-                if (obj is IRect r && !_inputTargets.Contains(r)) _inputTargets.Add(r);
+                for (int i = 0; i < _toAdd.Count; i++)
+                {
+                    var obj = _toAdd[i];
+                    if (obj is IUpdate u) _updatables.Add(u);
+                    if (obj is IDraw d) _drawables.Add(d);
+                    if (obj is IRect r) _inputTargets.Add(r);
+                }
+                _toAdd.Clear();
+                _needsSort = true;
             }
-            _toAdd.Clear();
-            _needsSort = true;
         }
 
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
+            if (camera == null) return;
+
             if (_needsSort)
             {
                 _drawables.Sort((a, b) => a.OrderInLayer.CompareTo(b.OrderInLayer));
@@ -120,16 +131,19 @@ namespace GameEngine.Systems
 
             spriteBatch.End();
         }
+
         public virtual void Dispose()
         {
-            foreach (var obj in _drawables)
+            var drawSpan = CollectionsMarshal.AsSpan(_drawables);
+            for (int i = 0; i < drawSpan.Length; i++)
             {
-                if (obj is IDisposable d) d.Dispose();
+                if (drawSpan[i] is IDisposable d) d.Dispose();
             }
-
             _updatables.Clear();
             _drawables.Clear();
+            _inputTargets.Clear();
         }
+
         public abstract void Load();
         public void SetCamera(Camera2D cam) => camera = cam;
     }

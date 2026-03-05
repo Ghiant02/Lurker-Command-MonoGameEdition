@@ -1,6 +1,7 @@
 ﻿using GameEngine.Components.UI;
 using GameEngine.Services;
 using GameEngine.Systems;
+using LurkerCommand.GameScripts.Game.MapSystem.Cells;
 using LurkerCommand.GameSystem;
 using LurkerCommand.Services;
 using Microsoft.Xna.Framework;
@@ -8,13 +9,18 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace LurkerCommand.MapSystem
 {
-    public sealed class Cell : Entity, IGrid {
+    public abstract class Cell : Entity, IGrid {
+        public abstract bool canCaptured { get; set; }
+        public abstract CellType cellType { get; set; }
+
         public Point gridPosition { get; set; }
         public Image cellImage;
         public readonly Color defaultColor = Color.White;
         public readonly Color hiddenColor = new Color(175, 175, 175, 255);
+
+        protected Unit currentUnit = null;
+        
         private const float moveNoteOffset = 0.25f;
-        private Unit currentUnit = null;
         private bool isVisible = false;
         private bool isEmpty = true;
         private const string dot = "·";
@@ -38,7 +44,7 @@ namespace LurkerCommand.MapSystem
             get => isEmpty;
             set => isEmpty = value;
         }
-        private Text moveNote;
+        protected Text moveNote;
         public Cell(Texture2D texture, Vector2 position, Vector2 scale) : base(position, scale, 0f, true)
         {
             cellImage = new Image(texture, Vector2.Zero, scale, new Color(175, 175, 175, 255));
@@ -47,7 +53,7 @@ namespace LurkerCommand.MapSystem
             Init();
         }
 
-        private void Init()
+        protected void Init()
         {
             moveNote = new Text(AssetManager.GetFont("Arial"), dot, Vector2.Zero, Color.LightGreen, true);
             moveNote.Transform.Parent = Transform;

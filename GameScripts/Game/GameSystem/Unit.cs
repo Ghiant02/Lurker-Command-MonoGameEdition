@@ -11,41 +11,43 @@ namespace LurkerCommand.GameSystem
 {
     public sealed class Unit : Entity, IGrid, IDraggable, IRect
     {
-        private int value;
-        private int maxMoves = 25;
-        private int moves;
+        private UnitStats _stats;
+
         private Team team;
         private bool isPlayer;
         private const float draggingColorMultiplier = 0.6f;
         public Text valueText;
-        public const int maxValue = 9;
-        public int Value
+        public sbyte Value
         {
-            get => value;
+            get => _stats.value;
             set
             {
-                this.value = value > maxValue ? 1 : value;
+                if(value > UnitStats.maxValue) {
+                    _stats.value = 1;
+                    return;
+                }
+                _stats.value = value;
                 UpdateText();
             }
         }
-        public int Moves {
-            get => moves;
+        public sbyte Moves {
+            get => _stats.moves;
             set {
-                moves = MathHelper.Clamp(value, 0, maxMoves);
+                _stats.moves = (sbyte)MathHelper.Clamp(value, 0, UnitStats.maxMoves);
             }
         }
         public Action onMoved;
         public Point gridPosition { get; set; }
         public Cell currentCell;
         public bool isVisible;
-        public Unit(SpriteFont font, Point startPoint, int initialValue) : base(Vector2.Zero, Vector2.One)
+        public Unit(SpriteFont font, Point startPoint, sbyte initialValue) : base(Vector2.Zero, Vector2.One)
         {
             gridPosition = startPoint;
             OrderInLayer = 2;
 
             valueText = new Text(font, "", Vector2.Zero);
             valueText.Transform.Parent = Transform;
-            valueText.OrderInLayer = 3;
+            valueText.OrderInLayer = OrderInLayer + 1;
 
             Value = initialValue;
             Moves = initialValue;
@@ -68,6 +70,7 @@ namespace LurkerCommand.GameSystem
             this.team = team;
             valueText.Color = team.TeamColor;
             isPlayer = team.isPlayer;
+            GetVision();
         }
         public void BindCell(Cell cell)
         {
@@ -83,17 +86,24 @@ namespace LurkerCommand.GameSystem
             valueText.Draw(gameTime, sb);
         }
         public Rectangle GetBounds() => valueText.GetBounds();
-        public void MoveUnit(Cell cell, int steps = 0) {
+        public void GetVision() => Field.UpdateTeamVisibility(team.GetUnits());
+        public void MoveUnit(Cell cell, sbyte steps = 0)
+        {
             if (CanMove()) {
                 BindCell(cell);
                 MoveTo(cell);
+
                 Value -= steps;
                 Moves -= steps;
+
                 gridPosition = cell.gridPosition;
-                Field.UpdateVisibility(this);
+
+                GetVision();
+
                 onMoved?.Invoke();
             }
-            else {
+            else
+            {
                 MoveTo(currentCell);
             }
         }
@@ -102,7 +112,7 @@ namespace LurkerCommand.GameSystem
             Transform.LocalPosition = cell.Transform.LocalPosition + cell.cellImage.GetSize().ToVector2() * 0.5f;
         }
         public void UpdateText() {
-            valueText.text = value.ToString();
+            valueText.text = Value.ToString();
         }
 
         public void OnDragStart() {
@@ -124,10 +134,20 @@ namespace LurkerCommand.GameSystem
             Cell targetCell = Field.GetCellByWorldPos(Transform.LocalPosition);
             var availableCells = Field.GetAvailableCells(currentCell, Moves);
 
-            if (targetCell != null && CanMove() && availableCells.Contains(targetCell))
+            bool isAvailable = false;
+            for (int i = 0; i < availableCells.Length; i++)
             {
-                int distance = Math.Abs(targetCell.gridPosition.X - currentCell.gridPosition.X) +
-                               Math.Abs(targetCell.gridPosition.Y - currentCell.gridPosition.Y);
+                if (availableCells[i] == targetCell)
+                {
+                    isAvailable = true;
+                    break;
+                }
+            }
+
+            if (targetCell != null && CanMove() && isAvailable)
+            {
+                sbyte distance = (sbyte)(Math.Abs(targetCell.gridPosition.X - currentCell.gridPosition.X) +
+                                         Math.Abs(targetCell.gridPosition.Y - currentCell.gridPosition.Y));
 
                 MoveUnit(targetCell, distance);
             }

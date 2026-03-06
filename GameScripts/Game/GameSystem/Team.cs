@@ -7,7 +7,7 @@ namespace LurkerCommand.GameSystem
 {
     public sealed class Team
     {
-        private readonly List<Unit> _units = new(16);
+        private readonly List<Unit> _units = new(32);
         public int Moves { get; private set; }
         public readonly bool isPlayer;
         public float TimeLeft { get; set; }
@@ -28,7 +28,7 @@ namespace LurkerCommand.GameSystem
 
         public void RefreshTurn()
         {
-            var span = CollectionsMarshal.AsSpan(_units);
+            var span = GetUnits();
             for (int i = 0; i < span.Length; i++)
             {
                 Moves += span[i].Value;

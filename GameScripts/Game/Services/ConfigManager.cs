@@ -8,10 +8,11 @@ namespace LurkerCommand.Services
     public static class ConfigManager
     {
         private static readonly string ConfigPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.txt");
-        private static readonly Dictionary<string, string> Settings = new(16);
+        private static readonly Dictionary<string, string> Settings = new(32);
 
         public static void Initialize()
         {
+            SetDefaults();
             if (File.Exists(ConfigPath))
             {
                 Load();
@@ -25,8 +26,8 @@ namespace LurkerCommand.Services
 
         private static void SetDefaults()
         {
-            Settings["Width"] = "1440";
-            Settings["Height"] = "1080";
+            Settings["Width"] = "800";
+            Settings["Height"] = "600";
             Settings["FullScreen"] = "false";
             Settings["WindowTitle"] = "Lurker Command";
             Settings["AltF4"] = "false";

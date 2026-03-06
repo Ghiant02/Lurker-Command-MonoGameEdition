@@ -9,18 +9,17 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace LurkerCommand.MapSystem
 {
-    public abstract class Cell : Entity, IGrid {
-        public abstract bool canCaptured { get; set; }
-        public abstract CellType cellType { get; set; }
-
+    public class Cell : Entity, IGrid {
+        public virtual bool canCaptured { get; set; } = true;
+        public virtual CellType cellType { get; set; } = CellType.DefaultCell;
+        public virtual Color defaultColor { get; set; } = Color.White;
+        public virtual Color hiddenColor { get; set; } = new Color(colorHiddenEffect, colorHiddenEffect, colorHiddenEffect);
         public Point gridPosition { get; set; }
         public Image cellImage;
-        public readonly Color defaultColor = Color.White;
-        public readonly Color hiddenColor = new Color(175, 175, 175, 255);
+        public const byte colorHiddenEffect = 175;
 
         protected Unit currentUnit = null;
         
-        private const float moveNoteOffset = 0.25f;
         private bool isVisible = false;
         private bool isEmpty = true;
         private const string dot = "·";
@@ -59,7 +58,7 @@ namespace LurkerCommand.MapSystem
             moveNote.Transform.Parent = Transform;
             moveNote.Transform.LocalScale = Transform.LocalScale;
             Vector2 cellSize = cellImage.GetSize().ToVector2();
-            Vector2 center = cellSize * moveNoteOffset;
+            Vector2 center = cellSize / 2;
             moveNote.Transform.LocalPosition = center;
 
             Toggle(false);

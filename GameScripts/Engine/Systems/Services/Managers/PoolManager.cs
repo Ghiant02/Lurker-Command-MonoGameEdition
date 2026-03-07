@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
+using GameEngine.Systems;
 
-namespace GameEngine.Systems
+namespace GameEngine.Services
 {
     public static class PoolManager
     {

@@ -1,27 +1,29 @@
 ﻿using LurkerCommand.GameScripts.Game.MapSystem.Cells;
+using LurkerCommand.GameSystem;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 
-namespace LurkerCommand.MapSystem
+namespace LurkerCommand.MapSystem;
+
+public sealed class ImmortalCell : Cell
 {
-    public sealed class ImmortalCell : Cell
-    {
-        private Color _hiddenColor;
-        public override bool canCaptured { get; set; } = false;
-        public override CellType cellType { get; set; } = CellType.ImmortalCell;
-        public override Color defaultColor { get; set; }
-        public override Color hiddenColor {
-            get => _hiddenColor;
-            set {
-                UpdateColor(value.R, value.R, value.B);
-                _hiddenColor = value;
-            }
-        }
-        public ImmortalCell(Texture2D texture, Vector2 position, Vector2 scale) : base(texture, position, scale) {
-            UpdateColor(defaultColor.R, defaultColor.G, defaultColor.B);
-        }
+    public override bool canCaptured { get; set; } = false;
+    public override CellType cellType { get; set; } = CellType.ImmortalCell;
+    public override Color defaultColor { get; set; }
+    public override Color hiddenColor { get; set; }
 
-        public void UpdateColor(float valueX, float valueY, float valueZ) => _hiddenColor = new Color(MathF.Abs(colorHiddenEffect - defaultColor.R), MathF.Abs(colorHiddenEffect - defaultColor.G), MathF.Abs(colorHiddenEffect - defaultColor.B));
+    public ImmortalCell(Texture2D texture, Vector2 position, Vector2 scale, int teamIndex)
+        : base(texture, position, scale)
+    {
+        var team = TeamManager.GetTeamByIndex(teamIndex);
+
+        defaultColor = team != null ? team.TeamColor : Color.Gray;
+
+        hiddenColor = new Color(defaultColor.R / 2, defaultColor.G / 2, defaultColor.B / 2);
+
+        if (cellImage != null)
+        {
+            cellImage.Color = defaultColor;
+        }
     }
 }

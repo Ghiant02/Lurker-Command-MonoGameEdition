@@ -15,8 +15,8 @@ namespace LurkerCommand.Scenes
 
         public override void Load()
         {
-            Field.SetMap(this);
             TeamManager.Init();
+            Field.SetMap(this);
             GameUI.InitUI();
 
             Camera2D cm = new Camera2D(_device);

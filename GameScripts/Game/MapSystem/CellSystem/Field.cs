@@ -17,7 +17,6 @@ namespace LurkerCommand.MapSystem
         private const int CellScale = 1;
 
         public static readonly Cell[,] cells = new Cell[SizeX, SizeY];
-
         private static readonly Cell[] ResultBuffer = new Cell[SizeX * SizeY];
         private static readonly List<Cell> VisibleRegistry = new(SizeX * SizeY);
 
@@ -25,59 +24,33 @@ namespace LurkerCommand.MapSystem
         public static int CellHeight { get; private set; }
         public static int MapWidth { get; private set; }
         public static int MapHeight { get; private set; }
-        private struct CellChance
-        {
-            public CellType Type;
-            public float Chance;
-            public CellChance(CellType type, float chance) {
-                Type = type;
-                Chance = chance;
-            }
-        }
-
-        private static readonly (CellType Type, float Weight)[] RawChances = {
-    (CellType.DefaultCell, 0.95f),
-    (CellType.GoldenCell, 0.05f),
-};
-
-        private struct CellWeight
-        {
-            public CellType Type;
-            public float Threshold;
-        }
-
-        private static CellWeight[] _chanceTable;
-        private static float _totalWeight;
         private static readonly Random _rng = new();
         public const int BaseRangeX = 8;
         public const int BaseRangeY = 5;
 
-        public static bool IsInsideBase(int x, int y, out int team)
+        public static bool IsInsideBase(int x, int y, out int team, out bool isBorder)
         {
             team = -1;
+            isBorder = false;
             int baseStartX = (SizeX / 2) - (BaseRangeX / 2);
 
-            if (x >= baseStartX && x < baseStartX + BaseRangeX && y < BaseRangeY)
+            if (x >= baseStartX && x < baseStartX + BaseRangeX)
             {
-                bool isBorder = x == baseStartX || x == baseStartX + BaseRangeX - 1 || y == BaseRangeY - 1;
-                if (!isBorder)
+                if (y < BaseRangeY)
                 {
                     team = 0;
+                    isBorder = x == baseStartX || x == baseStartX + BaseRangeX - 1 || y == BaseRangeY - 1;
                     return true;
                 }
-            }
 
-            int botBaseStartY = SizeY - BaseRangeY;
-            if (x >= baseStartX && x < baseStartX + BaseRangeX && y >= botBaseStartY)
-            {
-                bool isBorder = x == baseStartX || x == baseStartX + BaseRangeX - 1 || y == botBaseStartY;
-                if (!isBorder)
+                int botBaseStartY = SizeY - BaseRangeY;
+                if (y >= botBaseStartY)
                 {
                     team = 1;
+                    isBorder = x == baseStartX || x == baseStartX + BaseRangeX - 1 || y == botBaseStartY;
                     return true;
                 }
             }
-
             return false;
         }
 
@@ -88,7 +61,7 @@ namespace LurkerCommand.MapSystem
             {
                 for (int x = 0; x < SizeX; x++)
                 {
-                    if (cells[x, y].cellType == CellType.GoldenCell && IsInsideBase(x, y, out int team))
+                    if (cells[x, y]?.cellType == CellType.GoldenCell && IsInsideBase(x, y, out int team, out _))
                     {
                         spawnPoints.Add((new Point(x, y), team));
                     }
@@ -97,39 +70,9 @@ namespace LurkerCommand.MapSystem
             return spawnPoints;
         }
 
-        public static void InitializeChances()
-        {
-            _totalWeight = 0;
-            _chanceTable = new CellWeight[RawChances.Length];
-
-            for (int i = 0; i < RawChances.Length; i++)
-            {
-                _totalWeight += RawChances[i].Weight;
-                _chanceTable[i] = new CellWeight
-                {
-                    Type = RawChances[i].Type,
-                    Threshold = _totalWeight
-                };
-            }
-        }
-
-        private static CellType GetRandomCellType()
-        {
-            float roll = (float)(_rng.NextDouble() * _totalWeight);
-
-            for (int i = 0; i < _chanceTable.Length; i++)
-            {
-                if (roll < _chanceTable[i].Threshold)
-                    return _chanceTable[i].Type;
-            }
-
-            return _chanceTable[0].Type;
-        }
         public static void SetMap(Scene scene)
         {
-            InitializeChances();
             Texture2D texture = AssetManager.GetTexture("square");
-
             CellWidth = texture.Width * CellScale;
             CellHeight = texture.Height * CellScale;
             MapWidth = SizeX * CellWidth;
@@ -142,65 +85,45 @@ namespace LurkerCommand.MapSystem
                 for (int x = 0; x < SizeX; x++)
                 {
                     Vector2 pos = new Vector2(x * CellWidth, y * CellHeight);
+                    CellType type = CellType.DefaultCell;
+                    int team = -1;
 
-                    CellType finalType = GetCellTypeForPosition(x, y, BaseRangeX, BaseRangeY);
-
-                    Cell cell = GetCellType(pos, scaleVec, finalType);
+                    if (IsInsideBase(x, y, out team, out bool isBorder))
+                    {
+                        type = isBorder ? CellType.ImmortalCell : CellType.GoldenCell;
+                    }
+                    Cell cell = CreateCell(pos, scaleVec, type, team);
                     cell.gridPosition = new Point(x, y);
-                    cell.cellType = finalType;
-
+                    cell.cellType = type;
                     cells[x, y] = cell;
                     scene.Add(cell);
                 }
             }
         }
 
-        private static CellType GetCellTypeForPosition(int x, int y, int rx, int ry)
+        private static Cell CreateCell(Vector2 pos, Vector2 scale, CellType type, int team)
         {
-            int baseStartX = (SizeX / 2) - (rx / 2);
-
-            if (x >= baseStartX && x < baseStartX + rx && y < ry)
+            return type switch
             {
-                bool isBorder = x == baseStartX || x == baseStartX + rx - 1 || y == ry - 1;
-                return isBorder ? CellType.ImmortalCell : CellType.GoldenCell;
-            }
-
-            int botBaseStartY = SizeY - ry;
-            if (x >= baseStartX && x < baseStartX + rx && y >= botBaseStartY)
-            {
-                bool isBorder = x == baseStartX || x == baseStartX + rx - 1 || y == botBaseStartY;
-                return isBorder ? CellType.ImmortalCell : CellType.GoldenCell;
-            }
-
-            return GetRandomCellType();
+                CellType.GoldenCell => new GoldenCell(AssetManager.GetTexture("golden_square"), pos, scale),
+                CellType.ImmortalCell => new ImmortalCell(AssetManager.GetTexture("square"), pos, scale, team),
+                _ => new Cell(AssetManager.GetTexture("square"), pos, scale)
+            };
         }
 
-        private static Cell GetCellType(Vector2 position, Vector2 scale, CellType type) {
-            switch (type)
-            {
-                case CellType.DefaultCell:
-                    return new Cell(AssetManager.GetTexture("square"), position, scale);
-                case CellType.GoldenCell:
-                    return new GoldenCell(AssetManager.GetTexture("golden_square"), position, scale);
-                case CellType.ImmortalCell:
-                    return new ImmortalCell(AssetManager.GetTexture("square"), position, scale);
-                default:
-                    return null;
-            }
-        }
         public static ReadOnlySpan<Cell> GetAvailableCells(Cell start, int range)
             => GetStraightLines(start, range);
 
         public static ReadOnlySpan<Cell> GetStraightLines(Cell start, int range)
         {
             int count = 0;
-            range -= 1;
+            int effectiveRange = range - 1;
             Point p = start.gridPosition;
 
-            count = ScanDirection(p, 1, 0, range, count);
-            count = ScanDirection(p, -1, 0, range, count);
-            count = ScanDirection(p, 0, 1, range, count);
-            count = ScanDirection(p, 0, -1, range, count);
+            count = ScanDirection(p, 1, 0, effectiveRange, count);
+            count = ScanDirection(p, -1, 0, effectiveRange, count);
+            count = ScanDirection(p, 0, 1, effectiveRange, count);
+            count = ScanDirection(p, 0, -1, effectiveRange, count);
 
             return new ReadOnlySpan<Cell>(ResultBuffer, 0, count);
         }
@@ -215,7 +138,7 @@ namespace LurkerCommand.MapSystem
                 if ((uint)nx >= SizeX || (uint)ny >= SizeY) break;
 
                 Cell cell = cells[nx, ny];
-                if (!cell.IsEmpty) break;
+                if (cell == null || !cell.IsEmpty) break;
                 ResultBuffer[count++] = cell;
             }
             return count;
@@ -224,19 +147,18 @@ namespace LurkerCommand.MapSystem
         public static void UpdateVisibility(Unit unit)
         {
             if (unit == null) return;
-
             ClearVisibility();
-
             UpdateUnitSight(unit);
         }
 
         public static void UpdateTeamVisibility(Team team)
         {
-            if (!team.isPlayer) return;
+            if (team == null || !team.isPlayer) return;
             ClearVisibility();
-            foreach (var unit in team.GetUnits())
+            var units = team.GetUnits();
+            for (int i = 0; i < units.Length; i++)
             {
-                UpdateUnitSight(unit);
+                UpdateUnitSight(units[i]);
             }
         }
 
@@ -256,11 +178,10 @@ namespace LurkerCommand.MapSystem
                 for (int x = minX; x <= maxX; x++)
                 {
                     int dx = Math.Abs(x - p.X);
-
                     if (dx + dy <= range)
                     {
                         Cell cell = cells[x, y];
-                        if (!cell.IsVisible)
+                        if (cell != null && !cell.IsVisible)
                         {
                             cell.IsVisible = true;
                             VisibleRegistry.Add(cell);
@@ -273,7 +194,7 @@ namespace LurkerCommand.MapSystem
         public static void ClearVisibility()
         {
             var span = CollectionsMarshal.AsSpan(VisibleRegistry);
-            for (ushort i = 0; i < span.Length; i++)
+            for (int i = 0; i < span.Length; i++)
             {
                 span[i].IsVisible = false;
             }
@@ -297,9 +218,7 @@ namespace LurkerCommand.MapSystem
         }
 
         public static Cell GetCell(Point p) => GetCell(p.X, p.Y);
-
         public static Cell GetCell(int x, int y) => ((uint)x < SizeX && (uint)y < SizeY) ? cells[x, y] : null;
-
         public static bool CellInField(int x, int y) => (uint)x < SizeX && (uint)y < SizeY;
         public static bool CellInField(Cell cell) => cell != null && CellInField(cell.gridPosition.X, cell.gridPosition.Y);
     }

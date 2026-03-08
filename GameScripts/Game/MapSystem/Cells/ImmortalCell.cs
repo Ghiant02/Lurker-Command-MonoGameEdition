@@ -5,8 +5,8 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace LurkerCommand.MapSystem;
 
-public sealed class ImmortalCell : Cell
-{
+public sealed class ImmortalCell : Cell {
+    public override byte idleBonus { get; set; } = 0;
     public override bool canCaptured { get; set; } = false;
     public override CellType cellType { get; set; } = CellType.ImmortalCell;
     public override Color defaultColor { get; set; }

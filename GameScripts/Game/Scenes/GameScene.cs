@@ -17,18 +17,18 @@ namespace LurkerCommand.Scenes
         private static Button _skipMoveButton;
 
         private const string timeLeftMessage = "Time Left: ";
-        public static void UpdateTime(int time)
+        public static void UpdateTime(string team, int time)
         {
-            if(time >= 40) {
+            if(time >= 30) {
                 _timeText.Color = Color.Green;
             }
-            else if(time < 40 && time > 10) {
+            else if(time < 30 && time > 10) {
                 _timeText.Color = Color.Yellow;
             }
             else {
                 _timeText.Color = Color.Red;
             }
-            _timeText.text = timeLeftMessage + time.ToString() + "s";
+            _timeText.text = team + ": " + timeLeftMessage + time.ToString() + "s";
         }
         public override void Load()
         {
@@ -46,13 +46,12 @@ namespace LurkerCommand.Scenes
             foreach (var data in spawnData)
             {
                 Unit newUnit = new Unit();
-                newUnit.Setup(AssetManager.GetFont("Arial"), data.position, 3);
+                newUnit.Setup(AssetManager.GetFont("Arial"), data.position, 2);
                 TeamManager.AddUnitToTeam(data.team, newUnit);
                 Add(newUnit);
 
                 Field.GetCell(data.position).BindUnit(newUnit);
             }
-            TeamManager.CurrentTeam.RefreshTurn();
 
             float screenWidth = _device.Viewport.Width;
             float screenHeight = _device.Viewport.Height;
@@ -68,7 +67,8 @@ namespace LurkerCommand.Scenes
             Vector2 buttonPosition = new Vector2(screenWidth - buttonWidth - 40, 20);
 
             _skipMoveButton = new Button(buttonTexture, buttonPosition, new Vector2(0.1f, 0.1f), Color.White, font, "Skip Move");
-            _skipMoveButton.text.Transform.LocalScale = new Vector2(0.2f, 0.2f); 
+            _skipMoveButton.text.Transform.LocalScale = new Vector2(0.2f, 0.2f);
+            _skipMoveButton.text.UpdateBounds();
             _skipMoveButton.onClicked += TeamManager.NextTurn;
 
             AddUI(_timeText);

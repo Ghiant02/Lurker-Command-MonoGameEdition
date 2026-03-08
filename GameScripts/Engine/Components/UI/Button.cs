@@ -34,7 +34,6 @@ namespace GameEngine.Components.UI
             Point mousePosition = new Point(mouse.X, mouse.Y);
             bool isHovered = GetBounds().Contains(mousePosition);
             if(isHovered) {
-                if (Color == defaultColor) return;
                 Color = hoveredColor;
                 if (mouse.LeftButton == ButtonState.Released && _lastMouseState == ButtonState.Pressed)
                 {
@@ -42,7 +41,6 @@ namespace GameEngine.Components.UI
                 }
             }
             else {
-                if (Color == defaultColor) return;
                 Color = defaultColor;
             }
             _lastMouseState = mouse.LeftButton;

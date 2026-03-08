@@ -7,7 +7,6 @@ namespace LurkerCommand.GameSystem
     public static class TeamManager
     {
         public const float TimeMultiplier = 1.2f;
-
         private static readonly Team[] Teams = new Team[2];
         private static int _currentIndex;
 
@@ -15,18 +14,18 @@ namespace LurkerCommand.GameSystem
 
         public static void Init()
         {
-            Teams[0] = new Team(Color.Red, true);
-            Teams[1] = new Team(Color.Blue, false);
+            Teams[0] = new Team(Color.Red, true) { Name = "Red |" };
+            Teams[1] = new Team(Color.Blue, false) { Name = "Blue |" };
             _currentIndex = 0;
+            Teams[_currentIndex].RefreshTurn();
         }
 
         public static void Update(GameTime gameTime)
         {
-            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
             Team current = Teams[_currentIndex];
+            current.TimeLeft -= (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            current.TimeLeft -= dt;
-            GameScene.UpdateTime((int)MathF.Round(current.TimeLeft));
+            GameScene.UpdateTime(current.Name, (int)MathF.Ceiling(current.TimeLeft));
 
             if (current.TimeLeft <= 0)
             {
@@ -43,10 +42,7 @@ namespace LurkerCommand.GameSystem
 
         public static void AddUnitToTeam(int teamIndex, Unit unit)
         {
-            if ((uint)teamIndex < (uint)Teams.Length)
-            {
-                Teams[teamIndex].AddUnit(unit);
-            }
+            if ((uint)teamIndex < (uint)Teams.Length) Teams[teamIndex].AddUnit(unit);
         }
 
         public static Team GetTeamByIndex(int teamIndex) => Teams[teamIndex];

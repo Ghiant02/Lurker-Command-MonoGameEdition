@@ -9,74 +9,80 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace LurkerCommand.MapSystem
 {
-    public class Cell : Entity, IGrid {
+    public class Cell : Entity, IGrid
+    {
         public virtual bool canCaptured { get; set; } = true;
-        public virtual CellType cellType { get; set; } = CellType.DefaultCell;
+        public virtual byte idleBonus { get; set; } = 1;
         public virtual Color defaultColor { get; set; } = Color.White;
-        public virtual Color hiddenColor { get; set; } = new Color(colorHiddenEffect, colorHiddenEffect, colorHiddenEffect);
+        public virtual Color hiddenColor { get; set; } = new Color(175, 175, 175);
+        public virtual CellType cellType { get; set; } = CellType.DefaultCell;
         public Point gridPosition { get; set; }
         public Image cellImage;
-        public const byte colorHiddenEffect = 175;
         public Unit currentUnit = null;
-        
-        private bool isVisible = false;
-        private bool isEmpty = true;
-        private const string dot = "·";
-        public bool IsVisible {
-            get => isVisible;
-            set {
-                if (isVisible == value) return;
-                isVisible = value;
+        public bool IsCaptured { get; private set; }
+        public Team OwnerTeam { get; private set; }
 
-                cellImage.Color = value ? defaultColor : hiddenColor;
-                currentUnit?.isVisible = value;
-            }
-        }
-        public override void Draw(GameTime gameTime, SpriteBatch sb) {
-            cellImage.Draw(gameTime, sb);
-            if (moveNote.IsActive) {
-                moveNote.Draw(gameTime, sb);
-            }
-        }
-        public bool IsEmpty {
-            get => isEmpty;
-            set => isEmpty = value;
-        }
+        private Color _tintedColor;
+        private const float tintFactor = 0.25f;
+        private bool _isVisible = false;
+        public bool IsEmpty { get; set; } = true;
         protected Text moveNote;
+
+        public bool IsVisible
+        {
+            get => _isVisible;
+            set
+            {
+                if (_isVisible == value) return;
+                _isVisible = value;
+                cellImage.Color = value ? (IsCaptured ? _tintedColor : defaultColor) : hiddenColor;
+                if (currentUnit != null) currentUnit.isVisible = value;
+            }
+        }
+
         public Cell(Texture2D texture, Vector2 position, Vector2 scale) : base(position, scale, 0f, true)
         {
-            cellImage = new Image(texture, Vector2.Zero, scale, new Color(175, 175, 175, 255));
-            cellImage.Transform.Parent = Transform;
-            cellImage.OrderInLayer = 0;
-            Init();
+            cellImage = new Image(texture, Vector2.Zero, scale, hiddenColor) { Transform = { Parent = Transform }, OrderInLayer = 0 };
+            moveNote = new Text(AssetManager.GetFont("Arial"), "·", cellImage.GetSize().ToVector2() / 2, Color.LightGreen, true)
+            { Transform = { Parent = Transform, LocalScale = scale }, IsActive = false };
         }
 
-        protected void Init()
+        public override void Draw(GameTime gameTime, SpriteBatch sb)
         {
-            moveNote = new Text(AssetManager.GetFont("Arial"), dot, Vector2.Zero, Color.LightGreen, true);
-            moveNote.Transform.Parent = Transform;
-            moveNote.Transform.LocalScale = Transform.LocalScale;
-            Vector2 cellSize = cellImage.GetSize().ToVector2();
-            Vector2 center = cellSize / 2;
-            moveNote.Transform.LocalPosition = center;
-
-            Toggle(false);
+            cellImage.Draw(gameTime, sb);
+            if (moveNote.IsActive) moveNote.Draw(gameTime, sb);
         }
-        public void BindUnit(Unit unit)
+
+        public void Capture(Team team)
         {
+            if (!canCaptured && IsEmpty) return;
+            OwnerTeam = team;
+            IsCaptured = true;
+
+            _tintedColor = Color.Lerp(Color.White, team.TeamColor, tintFactor);
+
+            if (IsVisible) cellImage.Color = _tintedColor;
+        }
+
+        public void Uncapture()
+        {
+            IsCaptured = false;
+            OwnerTeam = null;
+            if (IsVisible) cellImage.Color = defaultColor;
+        }
+
+        public void BindUnit(Unit unit) {
+            unit.giveBonus = true;
             currentUnit = unit;
             IsEmpty = false;
             if (unit != null) unit.isVisible = IsVisible;
         }
+
         public void Unbind() {
-            currentUnit = null;
-            IsEmpty = true;
+            currentUnit.giveBonus = false;
+            currentUnit = null; 
+            IsEmpty = true; 
         }
-        public void Toggle(bool toggle) {
-            moveNote.IsActive = toggle;
-        }
-        public void Toggle() {
-            moveNote.IsActive = !moveNote.IsActive;
-        }
+        public void Toggle(bool toggle) => moveNote.IsActive = toggle;
     }
 }

@@ -13,6 +13,7 @@ public sealed class CameraMovement : Entity
     private const float ZoomFactor = 0.1f;
     private const float EdgeThreshold = 10f;
 
+    private float minX, minY, maxX, maxY;
     public CameraMovement(Camera2D camera, Vector2 startPosition) : base(Vector2.Zero, Vector2.One, 0f, false)
     {
         this.camera = camera;
@@ -76,10 +77,14 @@ public sealed class CameraMovement : Entity
         if (scroll != 0)
         {
             camera.Zoom = MathHelper.Clamp(camera.Zoom + (Math.Sign(scroll) * ZoomFactor), camera.MinZoom, camera.MaxZoom);
+
+            UpdateBounds();
+
+            ClampPosition(camera.Position);
         }
     }
 
-    public void MoveCamera(Vector2 targetPosition)
+    private void UpdateBounds()
     {
         var viewport = camera.graphics.Viewport;
         float invZoom = 1.0f / camera.Zoom;
@@ -87,11 +92,20 @@ public sealed class CameraMovement : Entity
         float halfViewWidth = (viewport.Width * 0.5f) * invZoom;
         float halfViewHeight = (viewport.Height * 0.5f) * invZoom;
 
-        float minX = halfViewWidth;
-        float maxX = Field.MapWidth - halfViewWidth;
-        float minY = halfViewHeight;
-        float maxY = Field.MapHeight - halfViewHeight;
+        minX = halfViewWidth;
+        maxX = Field.MapWidth - halfViewWidth;
+        minY = halfViewHeight;
+        maxY = Field.MapHeight - halfViewHeight;
+    }
 
+    public void MoveCamera(Vector2 targetPosition)
+    {
+        UpdateBounds();
+        ClampPosition(targetPosition);
+    }
+
+    public void ClampPosition(Vector2 targetPosition)
+    {
         camera.Position = new Vector2(
             maxX > minX ? MathHelper.Clamp(targetPosition.X, minX, maxX) : Field.MapWidth * 0.5f,
             maxY > minY ? MathHelper.Clamp(targetPosition.Y, minY, maxY) : Field.MapHeight * 0.5f

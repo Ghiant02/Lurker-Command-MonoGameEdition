@@ -10,8 +10,8 @@ namespace GameEngine.Components.Core {
         private Matrix _transform;
         private bool _isDirty = true;
 
-        public float MinZoom { get; set; } = 0.5f;
-        public float MaxZoom { get; set; } = 2.0f;
+        public float MinZoom { get; set; } = 0.8f;
+        public float MaxZoom { get; set; } = 2f;
 
         public Vector2 Position
         {

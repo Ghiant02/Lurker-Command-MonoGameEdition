@@ -14,23 +14,31 @@ namespace GameEngine.Systems
         private readonly List<IDraw> _drawables = new(1024);
         private readonly List<IRect> _inputTargets = new(512);
 
+        private readonly List<IDraw> _uiDrawables = new(128);
+        private readonly List<IRect> _uiInputTargets = new(128);
+
         private readonly List<GameObject> _toAdd = new(128);
+        private readonly List<GameObject> _uiToAdd = new(64);
         private readonly List<GameObject> _toRemove = new(128);
 
         public Camera2D camera { get; private set; }
         private bool _needsSort;
+        private bool _needsUISort;
 
         private IDraggable _currentDraggedLBM;
         private Entity _draggedEntityLBM;
         private Vector2 _dragOffsetLBM;
+        private bool _isDraggingUI_LBM;
 
         private IDraggable _currentDraggedRBM;
         private Entity _draggedEntityRBM;
         private Vector2 _dragOffsetRBM;
+        private bool _isDraggingUI_RBM;
 
         public void Add(GameObject obj) => _toAdd.Add(obj);
-        public bool Contains(GameObject obj) => _toAdd.Contains(obj);
+        public void AddUI(GameObject obj) => _uiToAdd.Add(obj);
         public void Remove(GameObject obj) => _toRemove.Add(obj);
+
         public virtual void Update(GameTime gameTime)
         {
             HandleInput();
@@ -38,44 +46,34 @@ namespace GameEngine.Systems
 
             var updateSpan = CollectionsMarshal.AsSpan(_updatables);
             for (int i = 0; i < updateSpan.Length; i++)
-            {
                 updateSpan[i].Update(gameTime);
-            }
         }
+
         private void HandleInput()
         {
             if (camera == null) return;
 
+            Vector2 mouseScreen = InputManager.MousePosition;
             Vector2 mouseWorld = camera.ScreenToWorld(InputManager.MousePosition);
 
             if (InputManager.IsMouseButtonPressed(MouseButton.Left))
             {
-                var inputSpan = CollectionsMarshal.AsSpan(_inputTargets);
-                for (int i = inputSpan.Length - 1; i >= 0; i--)
+                if (!ProcessInputGroup(_uiInputTargets, mouseScreen, out _currentDraggedLBM, out _draggedEntityLBM, true))
                 {
-                    var rectable = inputSpan[i];
-                    if (rectable.GetBounds().Contains(mouseWorld.ToPoint()))
-                    {
-                        if (rectable is IClickable clickable) clickable.OnPointerDown();
+                    ProcessInputGroup(_inputTargets, mouseWorld, out _currentDraggedLBM, out _draggedEntityLBM, false);
+                }
 
-                        if (rectable is IDraggable draggable)
-                        {
-                            _currentDraggedLBM = draggable;
-                            _draggedEntityLBM = rectable as Entity;
-
-                            if (_draggedEntityLBM != null)
-                            {
-                                _dragOffsetLBM = _draggedEntityLBM.Transform.LocalPosition - mouseWorld;
-                                _currentDraggedLBM.OnDragStartLBM();
-                            }
-                        }
-                        break;
-                    }
+                if (_currentDraggedLBM != null && _draggedEntityLBM != null)
+                {
+                    Vector2 origin = _isDraggingUI_LBM ? mouseScreen : mouseWorld;
+                    _dragOffsetLBM = _draggedEntityLBM.Transform.LocalPosition - origin;
+                    _currentDraggedLBM.OnDragStartLBM();
                 }
             }
             else if (_draggedEntityLBM != null && InputManager.IsMouseButtonDown(MouseButton.Left))
             {
-                _currentDraggedLBM.OnDragUpdateLBM(mouseWorld + _dragOffsetLBM);
+                Vector2 currentPos = _isDraggingUI_LBM ? mouseScreen : mouseWorld;
+                _currentDraggedLBM.OnDragUpdateLBM(currentPos + _dragOffsetLBM);
             }
             else if (_draggedEntityLBM != null)
             {
@@ -86,32 +84,22 @@ namespace GameEngine.Systems
 
             if (InputManager.IsMouseButtonPressed(MouseButton.Right))
             {
-                var inputSpan = CollectionsMarshal.AsSpan(_inputTargets);
-                for (int i = inputSpan.Length - 1; i >= 0; i--)
+                if (!ProcessInputGroup(_uiInputTargets, mouseScreen, out _currentDraggedRBM, out _draggedEntityRBM, true, true))
                 {
-                    var rectable = inputSpan[i];
-                    if (rectable.GetBounds().Contains(mouseWorld.ToPoint()))
-                    {
-                        if (rectable is IClickable clickable) clickable.OnPointerDown();
+                    ProcessInputGroup(_inputTargets, mouseWorld, out _currentDraggedRBM, out _draggedEntityRBM, false, true);
+                }
 
-                        if (rectable is IDraggable draggable)
-                        {
-                            _currentDraggedRBM = draggable;
-                            _draggedEntityRBM = rectable as Entity;
-
-                            if (_draggedEntityRBM != null)
-                            {
-                                _dragOffsetRBM = _draggedEntityRBM.Transform.LocalPosition - mouseWorld;
-                                _currentDraggedRBM.OnDragStartRBM();
-                            }
-                        }
-                        break;
-                    }
+                if (_currentDraggedRBM != null && _draggedEntityRBM != null)
+                {
+                    Vector2 origin = _isDraggingUI_RBM ? mouseScreen : mouseWorld;
+                    _dragOffsetRBM = _draggedEntityRBM.Transform.LocalPosition - origin;
+                    _currentDraggedRBM.OnDragStartRBM();
                 }
             }
             else if (_draggedEntityRBM != null && InputManager.IsMouseButtonDown(MouseButton.Right))
             {
-                _currentDraggedRBM.OnDragUpdateRBM(mouseWorld + _dragOffsetRBM);
+                Vector2 currentPos = _isDraggingUI_RBM ? mouseScreen : mouseWorld;
+                _currentDraggedRBM.OnDragUpdateRBM(currentPos + _dragOffsetRBM);
             }
             else if (_draggedEntityRBM != null)
             {
@@ -121,67 +109,87 @@ namespace GameEngine.Systems
             }
         }
 
+        private bool ProcessInputGroup(List<IRect> targets, Vector2 mousePos, out IDraggable drag, out Entity entity, bool isUI, bool isRBM = false)
+        {
+            drag = null;
+            entity = null;
+            var span = CollectionsMarshal.AsSpan(targets);
+            for (int i = span.Length - 1; i >= 0; i--)
+            {
+                if (span[i].GetBounds().Contains(mousePos.ToPoint()))
+                {
+                    if (span[i] is IClickable c) c.OnPointerDown();
+                    if (span[i] is IDraggable d)
+                    {
+                        drag = d;
+                        entity = span[i] as Entity;
+                        if (isRBM) _isDraggingUI_RBM = isUI; else _isDraggingUI_LBM = isUI;
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private void SyncCollections()
         {
-            if (_toAdd.Count == 0 && _toRemove.Count == 0) return;
+            if (_toAdd.Count == 0 && _uiToAdd.Count == 0 && _toRemove.Count == 0) return;
 
-            if (_toRemove.Count > 0)
+            foreach (var obj in _toRemove)
             {
-                for (uint i = 0; i < _toRemove.Count; i++)
-                {
-                    var obj = _toRemove[(int)i];
-                    if (obj is IUpdate u) _updatables.Remove(u);
-                    if (obj is IDraw d) _drawables.Remove(d);
-                    if (obj is IRect r) _inputTargets.Remove(r);
-                }
-                _toRemove.Clear();
+                if (obj is IUpdate u) _updatables.Remove(u);
+                if (obj is IDraw d) { _drawables.Remove(d); _uiDrawables.Remove(d); }
+                if (obj is IRect r) { _inputTargets.Remove(r); _uiInputTargets.Remove(r); }
             }
+            _toRemove.Clear();
 
-            if (_toAdd.Count > 0)
+            foreach (var obj in _toAdd)
             {
-                for (uint i = 0; i < _toAdd.Count; i++)
-                {
-                    var obj = _toAdd[(int)i];
-                    if (obj is IUpdate u) _updatables.Add(u);
-                    if (obj is IDraw d) _drawables.Add(d);
-                    if (obj is IRect r) _inputTargets.Add(r);
-                }
-                _toAdd.Clear();
+                if (obj is IUpdate u) _updatables.Add(u);
+                if (obj is IDraw d) _drawables.Add(d);
+                if (obj is IRect r) _inputTargets.Add(r);
                 _needsSort = true;
             }
+            _toAdd.Clear();
+
+            foreach (var obj in _uiToAdd)
+            {
+                if (obj is IUpdate u) _updatables.Add(u);
+                if (obj is IDraw d) _uiDrawables.Add(d);
+                if (obj is IRect r) _uiInputTargets.Add(r);
+                _needsUISort = true;
+            }
+            _uiToAdd.Clear();
         }
 
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
             if (camera == null) return;
 
-            if (_needsSort)
-            {
-                _drawables.Sort((a, b) => a.OrderInLayer.CompareTo(b.OrderInLayer));
-                _needsSort = false;
-            }
+            if (_needsSort) { _drawables.Sort((a, b) => a.OrderInLayer.CompareTo(b.OrderInLayer)); _needsSort = false; }
+            if (_needsUISort) { _uiDrawables.Sort((a, b) => a.OrderInLayer.CompareTo(b.OrderInLayer)); _needsUISort = false; }
 
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, camera.GetViewMatrix());
+            var worldSpan = CollectionsMarshal.AsSpan(_drawables);
+            for (int i = 0; i < worldSpan.Length; i++) worldSpan[i].Draw(gameTime, spriteBatch);
+            spriteBatch.End();
 
-            var drawSpan = CollectionsMarshal.AsSpan(_drawables);
-            for (int i = 0; i < drawSpan.Length; i++)
-            {
-                drawSpan[i].Draw(gameTime, spriteBatch);
-            }
-
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, null);
+            var uiSpan = CollectionsMarshal.AsSpan(_uiDrawables);
+            for (int i = 0; i < uiSpan.Length; i++) uiSpan[i].Draw(gameTime, spriteBatch);
             spriteBatch.End();
         }
 
         public virtual void Dispose()
         {
-            var drawSpan = CollectionsMarshal.AsSpan(_drawables);
-            for (int i = 0; i < drawSpan.Length; i++)
-            {
-                if (drawSpan[i] is IDisposable d) d.Dispose();
-            }
+            _drawables.AddRange(_uiDrawables);
+            foreach (var d in _drawables) if (d is IDisposable disp) disp.Dispose();
+
             _updatables.Clear();
             _drawables.Clear();
+            _uiDrawables.Clear();
             _inputTargets.Clear();
+            _uiInputTargets.Clear();
         }
 
         public abstract void Load();

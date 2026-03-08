@@ -122,7 +122,7 @@ namespace LurkerCommand.GameSystem
             OnSpawn();
         }
         public bool CanMove() => CanControl() && Value > 1 && Moves > 0;
-        public bool CanControl() => isPlayer;
+        public bool CanControl() => team.isTurn && isPlayer;
         private void MoveTo(Cell cell) {
             Transform.LocalPosition = cell.Transform.LocalPosition + cell.cellImage.GetSize().ToVector2() * 0.5f;
         }
@@ -137,6 +137,7 @@ namespace LurkerCommand.GameSystem
         }
 
         public void OnDragUpdateLBM(Vector2 position) {
+            if (!CanControl()) return;
             Transform.LocalPosition = position;
         }
         public void OnDragEndLBM()
@@ -187,6 +188,7 @@ namespace LurkerCommand.GameSystem
             Field.ToggleMoveNotes(currentCell, true, splitMergeRange);
         }
         public void OnDragUpdateRBM(Vector2 position) {
+            if (!CanControl()) return;
             unitClone.Transform.LocalPosition = position;
         }
         public void OnDragEndRBM()

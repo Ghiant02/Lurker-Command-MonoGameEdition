@@ -11,7 +11,9 @@ namespace LurkerCommand.GameSystem
     public sealed class Team
     {
         private readonly List<Unit> _units = new(32);
+        public event Action onTurnPast;
         public int Moves { get; private set; }
+        public bool isTurn = false;
         public readonly bool isPlayer;
         public float TimeLeft { get; set; }
         public readonly Color TeamColor;
@@ -29,9 +31,10 @@ namespace LurkerCommand.GameSystem
         }
 
         public void RefreshTurn() {
+            isTurn = true;
             var span = GetUnits();
             for (int i = 0; i < span.Length; i++) {
-                Moves += span[i].Value;
+                Moves += span[i].Moves;
             }
 
             TimeLeft = Moves * TeamManager.TimeMultiplier;
@@ -69,16 +72,15 @@ namespace LurkerCommand.GameSystem
             clone.MoveUnit(cell);
 
             _units.Add(clone);
-
-            if (!SceneManager.CurrentScene.Contains(clone))
-                SceneManager.Add(clone);
+            SceneManager.Add(clone);
 
             ConsumeMove();
             return true;
         }
         public void SkipMove() {
+            isTurn = false;
             TimeLeft = 0f;
-            TeamManager.NextTurn();
+            onTurnPast?.Invoke();
         }
         public void ConsumeMove() => Moves = Math.Max(0, Moves - 1);
 

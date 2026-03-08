@@ -1,10 +1,9 @@
-﻿using GameEngine.Components.UI;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 
-namespace LurkerCommand.GameScripts.Engine.Components.UI
+namespace GameEngine.Components.UI
 {
     public sealed class Button : Image {
         private ButtonState _lastMouseState;

@@ -26,8 +26,8 @@ namespace LurkerCommand
 
         private void ApplyInitialSettings()
         {
-            _graphics.PreferredBackBufferWidth = 800;
-            _graphics.PreferredBackBufferHeight = 600;
+            _graphics.PreferredBackBufferWidth = 1920;
+            _graphics.PreferredBackBufferHeight = 1080;
             _graphics.IsFullScreen = ConfigManager.Get<bool>("FullScreen");
             _graphics.HardwareModeSwitch = false;
 

@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using LurkerCommand.Scenes;
+using Microsoft.Xna.Framework;
+using System;
 
 namespace LurkerCommand.GameSystem
 {
@@ -24,8 +26,9 @@ namespace LurkerCommand.GameSystem
             Team current = Teams[_currentIndex];
 
             current.TimeLeft -= dt;
+            GameScene.UpdateTime((int)MathF.Round(current.TimeLeft));
 
-            if (current.TimeLeft <= 0 || current.Moves <= 0)
+            if (current.TimeLeft <= 0)
             {
                 NextTurn();
             }
@@ -33,6 +36,7 @@ namespace LurkerCommand.GameSystem
 
         public static void NextTurn()
         {
+            Teams[_currentIndex].SkipMove();
             _currentIndex = (_currentIndex + 1) % Teams.Length;
             Teams[_currentIndex].RefreshTurn();
         }
@@ -46,6 +50,5 @@ namespace LurkerCommand.GameSystem
         }
 
         public static Team GetTeamByIndex(int teamIndex) => Teams[teamIndex];
-        public static Team GetCurrentTeam() => Teams[_currentIndex];
     }
 }

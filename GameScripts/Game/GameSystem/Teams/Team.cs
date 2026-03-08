@@ -49,18 +49,30 @@ namespace LurkerCommand.GameSystem
             ConsumeMove();
             return true;
         }
-        public bool SplitUnit(Unit baseUnit, Cell cell) {
-            if (Moves <= 0) return false;
+        public bool SplitUnit(Unit baseUnit, Cell cell)
+        {
+            if (Moves <= 0 || baseUnit.Value < 2) return false;
 
             sbyte total = baseUnit.Value;
             sbyte taken = (sbyte)(total / 2);
 
+            if (!cell.IsEmpty && cell.currentUnit.team == this)
+            {
+                cell.currentUnit.Value += taken;
+
+                ConsumeMove();
+                Field.UpdateTeamVisibility(this);
+                return true;
+            }
+
             Unit clone = PoolManager.Get<Unit>();
-            clone.Setup(baseUnit.valueText.Font, Point.Zero, taken);
+            clone.Setup(baseUnit.valueText.Font, cell.gridPosition, taken);
             clone.SetTeam(this);
             clone.MoveUnit(cell);
+
             _units.Add(clone);
-            if(SceneManager.CurrentScene.Contains(clone))
+
+            if (!SceneManager.CurrentScene.Contains(clone))
                 SceneManager.Add(clone);
 
             ConsumeMove();

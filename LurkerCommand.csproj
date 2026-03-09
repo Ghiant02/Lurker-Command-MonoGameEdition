@@ -42,7 +42,6 @@
 
   <ItemGroup>
     <Folder Include="Content\Fonts\" />
-    <Folder Include="GameScripts\Game\GameSystem\UI\" />
     <Folder Include="GameScripts\Game\NetworkSystem\" />
   </ItemGroup>
 

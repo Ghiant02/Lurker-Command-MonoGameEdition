@@ -1,5 +1,4 @@
-﻿using LurkerCommand.Scenes;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using System;
 
 namespace LurkerCommand.GameSystem
@@ -14,8 +13,8 @@ namespace LurkerCommand.GameSystem
 
         public static void Init()
         {
-            Teams[0] = new Team(Color.Red, true) { Name = "Red |" };
-            Teams[1] = new Team(Color.Blue, false) { Name = "Blue |" };
+            Teams[0] = new Team(Color.Red, true) { Name = "Red" };
+            Teams[1] = new Team(Color.Blue, false) { Name = "Blue" };
             _currentIndex = 0;
             Teams[_currentIndex].RefreshTurn();
         }
@@ -25,7 +24,7 @@ namespace LurkerCommand.GameSystem
             Team current = Teams[_currentIndex];
             current.TimeLeft -= (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            GameScene.UpdateTime(current.Name, (int)MathF.Ceiling(current.TimeLeft));
+            GameUI.UpdateTime(current.Name, (int)MathF.Ceiling(current.TimeLeft));
 
             if (current.TimeLeft <= 0)
             {

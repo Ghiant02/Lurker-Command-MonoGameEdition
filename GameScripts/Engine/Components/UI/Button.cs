@@ -12,12 +12,14 @@ namespace GameEngine.Components.UI
         public event Action onClicked;
         public readonly Color hoveredColor = Color.Gray;
         public readonly Color defaultColor;
-        public Button(Texture2D texture, Vector2 position, Vector2 scale, Color color, 
-            SpriteFont font = null, string text = "", float rotation = 0, bool isStatic = false) 
-            : base(texture, position, scale, color, rotation, isStatic) 
+        public Button(Texture2D texture, Vector2 position, Vector2 scale, Color color,
+    SpriteFont font = null, string text = "", float rotation = 0, bool isStatic = false)
+    : base(texture, position, scale, color, rotation, isStatic)
         {
-            if(font != null) {
-                Vector2 center = new Vector2(GetBounds().X / 2, GetBounds().Y / 2);
+            if (font != null)
+            {
+                Vector2 center = new Vector2(texture.Width * 0.5f, texture.Height * 0.5f);
+
                 this.text = new Text(font, text, center, Color.White, isStatic);
                 this.text.Transform.Parent = Transform;
 

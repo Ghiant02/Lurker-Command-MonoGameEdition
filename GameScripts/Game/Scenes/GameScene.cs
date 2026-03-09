@@ -1,5 +1,4 @@
 ﻿using GameEngine.Components.Core;
-using GameEngine.Components.UI;
 using GameEngine.Services;
 using GameEngine.Systems;
 using LurkerCommand.GameSystem;
@@ -13,23 +12,6 @@ namespace LurkerCommand.Scenes
     {
         private readonly GraphicsDevice _device;
         public GameScene(GraphicsDevice device) => _device = device;
-        private static Text _timeText;
-        private static Button _skipMoveButton;
-
-        private const string timeLeftMessage = "Time Left: ";
-        public static void UpdateTime(string team, int time)
-        {
-            if(time >= 30) {
-                _timeText.Color = Color.Green;
-            }
-            else if(time < 30 && time > 10) {
-                _timeText.Color = Color.Yellow;
-            }
-            else {
-                _timeText.Color = Color.Red;
-            }
-            _timeText.text = team + ": " + timeLeftMessage + time.ToString() + "s";
-        }
         public override void Load()
         {
             TeamManager.Init();
@@ -52,29 +34,15 @@ namespace LurkerCommand.Scenes
 
                 Field.GetCell(data.position).BindUnit(newUnit);
             }
-
-            float screenWidth = _device.Viewport.Width;
-            float screenHeight = _device.Viewport.Height;
-
-            SpriteFont font = AssetManager.GetFont("Pixel");
-            Texture2D buttonTexture = AssetManager.GetTexture("rectangle-hexagon");
-
-            Vector2 textPosition = new Vector2(screenWidth / 2, 20);
-            _timeText = new Text(font, timeLeftMessage + "00", textPosition, Color.Green);
-            _timeText.Transform.LocalScale = new Vector2(0.5f, 0.5f);
-
-            float buttonWidth = buttonTexture.Width;
-            Vector2 buttonPosition = new Vector2(screenWidth - buttonWidth - 40, 20);
-
-            _skipMoveButton = new Button(buttonTexture, buttonPosition, new Vector2(0.1f, 0.1f), Color.White, font, "Skip Move");
-            _skipMoveButton.text.Transform.LocalScale = new Vector2(0.2f, 0.2f);
-            _skipMoveButton.text.UpdateBounds();
-            _skipMoveButton.onClicked += TeamManager.NextTurn;
-
-            AddUI(_timeText);
-            AddUI(_skipMoveButton);
+            GameUI.onUIAdd += AddUI;
+            GameUI.Init(_device);
         }
-
+        public override void Dispose()
+        {
+            GameUI.onUIAdd -= AddUI;
+            GameUI.Dispose();
+            base.Dispose();
+        }
         public override void Update(GameTime gameTime)
         {
             HandleGameInput();

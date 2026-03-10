@@ -134,7 +134,7 @@ namespace LurkerCommand.MapSystem
                 if ((uint)nx >= SizeX || (uint)ny >= SizeY) break;
 
                 Cell cell = cells[nx, ny];
-                if (cell == null || !cell.IsEmpty) break;
+                if (cell == null) break;
                 ResultBuffer[count++] = cell;
             }
             return count;

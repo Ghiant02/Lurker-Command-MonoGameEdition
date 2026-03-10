@@ -41,7 +41,23 @@ namespace LurkerCommand.GameSystem
             _units.Remove(unit);
             onUnitRemoved?.Invoke(unit);
         }
+        public void AttackUnit(Unit ally, Unit enemy)
+        {
+            sbyte aVal = ally.Value;
+            sbyte eVal = enemy.Value;
 
+            if (aVal > eVal) {
+                enemy.Value = 0;
+                ally.Value = (sbyte)(aVal + eVal);
+            }
+            else if (aVal < eVal) {
+                ally.Value = 0;
+            }
+            else {
+                ally.Value = 0;
+                enemy.Value = 0;
+            }
+        }
         public void RefreshTurn()
         {
             isTurn = true;

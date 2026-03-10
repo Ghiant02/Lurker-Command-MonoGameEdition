@@ -23,11 +23,11 @@ namespace LurkerCommand.GameSystem
             set
             {
                 _stats.value = value;
-                if (Value > UnitStats.maxValue) {
+                if (_stats.value > UnitStats.maxValue) {
                     Value = 1;
                 }
-                else if(Value < 1) {
-                    PoolManager.Return(this);
+                else if(_stats.value < 1) {
+                    Kill(this);
                     return;
                 }
                 UpdateText();
@@ -135,19 +135,26 @@ namespace LurkerCommand.GameSystem
         {
             valueText.Color = team.TeamColor;
             Field.ToggleMoveNotes(currentCell, false, Value);
-            var avaiable = Field.GetAvailableCells(currentCell, Value);
+            var available = Field.GetAvailableCells(currentCell, Value);
             Cell target = Field.GetCellByWorldPos(Transform.LocalPosition);
             if (target != null && target != currentCell)
             {
                 int dist = Math.Abs(target.gridPosition.X - currentCell.gridPosition.X) + Math.Abs(target.gridPosition.Y - currentCell.gridPosition.Y);
                 if (dist <= Value)
                 {
-                    if (!target.IsEmpty && target.currentUnit.team == team && dist == 1) {
-                        if (!team.MergeUnit(target.currentUnit, this)) 
-                            MoveTo(currentCell);
+                    if (!available.Contains(target)) return;
+
+                    if (!target.IsEmpty) {
+                        if(target.currentUnit.team == team && dist == 1) {
+                            if (!team.MergeUnit(target.currentUnit, this))
+                                MoveTo(currentCell);
+                        }
+                        else if(target.currentUnit.team != team) {
+                            team.AttackUnit(this, target.currentUnit);
+                        }
                         return;
                     }
-                    if (target.IsEmpty && avaiable.Contains(target)) {
+                    if (target.IsEmpty) {
                         MoveUnit(target, (sbyte)dist); 
                         return; 
                     }
@@ -177,9 +184,11 @@ namespace LurkerCommand.GameSystem
                 int dist = Math.Abs(targetCell.gridPosition.X - currentCell.gridPosition.X) + Math.Abs(targetCell.gridPosition.Y - currentCell.gridPosition.Y);
                 if (dist <= splitMergeRange && team.SplitUnit(this, targetCell)) { Value -= unitClone.Value; }
             }
-            PoolManager.Return(unitClone);
+            Kill(unitClone);
         }
-
+        public void Kill(Unit unit) {
+            PoolManager.Return(unit);
+        }
         public void OnSpawn() => IsActive = true;
         public void OnDespawn() {
             team?.RemoveUnit(this); 

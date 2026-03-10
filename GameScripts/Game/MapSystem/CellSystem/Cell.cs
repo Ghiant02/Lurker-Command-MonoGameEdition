@@ -15,7 +15,7 @@ namespace LurkerCommand.MapSystem
         public virtual byte idleBonus => 1;
         public virtual Color defaultColor => Color.White;
         public virtual Color hiddenColor => new Color(175, 175, 175);
-        public virtual CellType cellType => CellType.DefaultCell;
+        public virtual CellType cellType { get; set; } = CellType.DefaultCell;
         public Point gridPosition { get; set; }
         public Image cellImage;
         public Unit currentUnit = null;
@@ -55,7 +55,7 @@ namespace LurkerCommand.MapSystem
 
         public void Capture(Team team)
         {
-            if (!canCaptured && IsEmpty) return;
+            if (!canCaptured || IsEmpty) return;
             OwnerTeam = team;
             IsCaptured = true;
 

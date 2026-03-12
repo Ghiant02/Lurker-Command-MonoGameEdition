@@ -129,7 +129,7 @@ namespace LurkerCommand.GameSystem
         public void OnSpawn() => IsActive = true;
         public void OnDespawn() {
             team?.RemoveUnit(this); 
-            currentCell?.Unbind(); 
+            CellSystem.Unbind(currentCell); 
             currentCell = null; 
             IsActive = false; 
         }

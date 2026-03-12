@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using LurkerCommand.MapSystem;
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -50,7 +51,7 @@ namespace LurkerCommand.GameSystem
                 var cell = unit.currentCell;
                 if (cell == null) continue;
 
-                if (cell.OwnerTeam != this) cell.Capture(this);
+                if (cell.OwnerTeam != this) CellSystem.Capture(cell, this);
                 if (unit.giveBonus) unit.Value += (sbyte)cell.idleBonus;
                 unit.Moves += unit.Value;
             }

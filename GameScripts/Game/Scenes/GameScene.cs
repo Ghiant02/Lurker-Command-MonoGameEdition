@@ -32,7 +32,7 @@ namespace LurkerCommand.Scenes
                 TeamManager.AddUnitToTeam(data.team, newUnit);
                 Add(newUnit);
 
-                Field.GetCell(data.position).BindUnit(newUnit);
+                CellSystem.BindUnit(Field.GetCell(data.position), newUnit);
             }
             GameUI.onUIAdd += AddUI;
             GameUI.Init(_device);

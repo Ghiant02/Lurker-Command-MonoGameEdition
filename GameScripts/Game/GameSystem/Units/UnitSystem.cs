@@ -44,9 +44,9 @@ namespace LurkerCommand.GameSystem {
         public static void BindCell(Unit unit, Cell cell)
         {
             if (unit.currentCell == cell) return;
-            unit.currentCell?.Unbind();
+            CellSystem.Unbind(cell);
             unit.currentCell = cell;
-            cell.BindUnit(unit);
+            CellSystem.BindUnit(cell, unit);
         }
         public static void MoveUnit(Unit unit, Cell cell, int steps = 0)
         {
@@ -75,9 +75,9 @@ namespace LurkerCommand.GameSystem {
         }
         public static void ForceBind(Unit unit, Cell cell)
         {
-            unit.currentCell?.Unbind();
+            CellSystem.Unbind(cell);
             unit.currentCell = cell;
-            cell.BindUnit(unit);
+            CellSystem.BindUnit(cell, unit);
             unit.gridPosition = cell.gridPosition;
             MoveTo(unit, cell);
         }

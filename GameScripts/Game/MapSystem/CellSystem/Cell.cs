@@ -19,13 +19,13 @@ namespace LurkerCommand.MapSystem
         public Point gridPosition { get; set; }
         public Image cellImage;
         public Unit currentUnit = null;
-        public bool IsCaptured { get; private set; }
-        public Team OwnerTeam { get; private set; }
+        public bool IsCaptured;
+        public Team OwnerTeam;
 
-        private Color _tintedColor;
-        private const float tintFactor = 0.25f;
+        public Color tintedColor;
+
         private bool _isVisible = false;
-        public bool IsEmpty { get; set; } = true;
+        public bool IsEmpty = true;
         protected Text moveNote;
 
         public bool IsVisible
@@ -35,7 +35,7 @@ namespace LurkerCommand.MapSystem
             {
                 if (_isVisible == value) return;
                 _isVisible = value;
-                cellImage.Color = value ? (IsCaptured ? _tintedColor : defaultColor) : hiddenColor;
+                cellImage.Color = value ? (IsCaptured ? tintedColor : defaultColor) : hiddenColor;
                 if (currentUnit != null) currentUnit.isVisible = value;
             }
         }
@@ -51,38 +51,6 @@ namespace LurkerCommand.MapSystem
         {
             cellImage.Draw(gameTime, sb);
             if (moveNote.IsActive) moveNote.Draw(gameTime, sb);
-        }
-
-        public void Capture(Team team)
-        {
-            if (!canCaptured || IsEmpty) return;
-            OwnerTeam = team;
-            IsCaptured = true;
-
-            _tintedColor = Color.Lerp(Color.White, team.TeamColor, tintFactor);
-
-            if (IsVisible) cellImage.Color = _tintedColor;
-        }
-
-        public void Uncapture()
-        {
-            IsCaptured = false;
-            OwnerTeam = null;
-            if (IsVisible) cellImage.Color = defaultColor;
-        }
-
-        public void BindUnit(Unit unit) {
-            unit.giveBonus = true;
-            currentUnit = unit;
-            IsEmpty = false;
-            if (unit != null) unit.isVisible = IsVisible;
-        }
-
-        public void Unbind() {
-            if (currentUnit == null) return;
-            currentUnit.giveBonus = false;
-            currentUnit = null; 
-            IsEmpty = true; 
         }
         public void Toggle(bool toggle) => moveNote.IsActive = toggle;
     }

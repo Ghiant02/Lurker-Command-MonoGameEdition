@@ -2,6 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework.Input;
+using System.Threading.Tasks;
 
 namespace LurkerCommand.Services
 {
@@ -65,14 +66,15 @@ namespace LurkerCommand.Services
                 }
             }
         }
-
         public static void Save()
         {
-            using StreamWriter writer = new StreamWriter(ConfigPath);
+            var settingsSnapshot = new List<string>(Settings.Count);
             foreach (var kvp in Settings)
             {
-                writer.WriteLine($"{kvp.Key}={kvp.Value}");
+                settingsSnapshot.Add($"{kvp.Key}={kvp.Value}");
             }
+
+            Task.Run(async () => await File.WriteAllLinesAsync(ConfigPath, settingsSnapshot));
         }
     }
 }

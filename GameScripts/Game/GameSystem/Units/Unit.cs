@@ -119,7 +119,7 @@ namespace LurkerCommand.GameSystem
         public void OnDragStartRBM()
         {
             if (!UnitSystem.CanControl(this) || Value < 2) return;
-            UnitSystem.HandleInteraction(this);
+            unitClone = UnitSystem.HandleInteraction(this);
         }
 
         public void OnDragUpdateRBM(Vector2 position) { 

@@ -135,7 +135,10 @@ namespace LurkerCommand.MapSystem
 
                 Cell cell = cells[nx, ny];
                 if (cell == null) break;
-                if(!cell.IsEmpty) {
+                if (cell.cellType == CellType.ImmortalCell) {
+                    continue;
+                }
+                else if(!cell.IsEmpty) {
                     ResultBuffer[count++] = cell;
                     break;
                 }
